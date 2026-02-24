@@ -5,6 +5,7 @@ using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using SamplePlugin.Windows;
+using SamplePlugin.Library.Infra;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 
 namespace SamplePlugin;

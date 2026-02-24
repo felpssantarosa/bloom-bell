@@ -1,4 +1,4 @@
-namespace SamplePlugin.Game.PartyList;
+namespace SamplePlugin.Library.Game.PartyList;
 
 public readonly struct PartyListMemberInfo
 {
