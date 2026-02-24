@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Lumina.Excel.Sheets;
+using SamplePlugin.Game.PartyList;
 
 namespace SamplePlugin.Windows;
 
@@ -30,6 +31,22 @@ public class MainWindow : Window, IDisposable
     }
 
     public void Dispose() { }
+
+    private int GetTotalPartyMembers()
+    {
+        var partyList = new PartyListProvider();
+
+        if (partyList == null)
+        {
+            Plugin.Log.Warning("PartyListProvider returned null.");
+
+            return 0;
+        }
+
+        var total = partyList.GetPartySize();
+
+        return total;
+    }
 
     public override void Draw()
     {
@@ -75,7 +92,7 @@ public class MainWindow : Window, IDisposable
                     ImGui.Text("Our local player is currently not logged in.");
                     return;
                 }
-                
+
                 if (!playerState.ClassJob.IsValid)
                 {
                     ImGui.Text("Our current job is currently not valid.");
@@ -85,6 +102,9 @@ public class MainWindow : Window, IDisposable
                 // If you want to see the Macro representation of this SeString use `.ToMacroString()`
                 // More info about SeStrings: https://dalamud.dev/plugin-development/sestring/
                 ImGui.Text($"Our current job is ({playerState.ClassJob.RowId}) '{playerState.ClassJob.Value.Abbreviation}' with level {playerState.Level}");
+
+                var totalPartyMembers = GetTotalPartyMembers();
+                ImGui.Text($"Party members: {totalPartyMembers}");
 
                 // Example for querying Lumina, getting the name of our current area.
                 var territoryId = Plugin.ClientState.TerritoryType;
