@@ -3,8 +3,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using BloomBell.src.config;
+using System;
 
-public class PartyNotifier
+public class PartyNotifier : IDisposable
 {
     private readonly HttpClient httpClient = new();
     private int lastPartySize = -1;
@@ -39,5 +40,10 @@ public class PartyNotifier
         }
 
         lastPartySize = currentPartySize;
+    }
+
+    public void Dispose()
+    {
+        httpClient?.Dispose();
     }
 }
