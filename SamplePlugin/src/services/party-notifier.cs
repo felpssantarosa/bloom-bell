@@ -14,7 +14,7 @@ public class PartyNotifier
     {
         if (currentPartySize == lastPartySize) return;
 
-        var maxSize = 2;
+        var maxSize = 8;
 
         if (currentPartySize < maxSize)
         {
