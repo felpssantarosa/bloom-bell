@@ -1,91 +1,95 @@
-﻿using Dalamud.Game.Command;
-using Dalamud.IoC;
+﻿using System.Threading.Tasks;
+using Dalamud.Game.Command;
 using Dalamud.Plugin;
-using System.IO;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Services;
 using BloomBell.src.gui.windows;
 using BloomBell.src.lib.infra;
 using BloomBell.src.config;
-using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using BloomBell.src.lib.game.partylist;
+using System;
 
 namespace BloomBell;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
-    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
-    [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IPartyList PartyList { get; private set; } = null!;
-    [PluginService] internal static IPluginLog Log { get; private set; } = null!;
-    private readonly PartyListProvider partyListProvider;
-    private readonly PartyNotifier partyNotifier;
+    private const string CommandName = "/bb";
 
-    private const string CommandName = "/warny";
+    internal readonly IDalamudPluginInterface pluginInterface;
+    internal readonly PartyListProvider partyListProvider;
+    internal readonly PartyNotifier partyNotifier;
 
-    public Configuration Configuration { get; init; }
+    internal readonly WindowSystem WindowSystem;
+    internal readonly MainWindow MainWindow;
+    internal readonly Configuration Configuration;
 
-    public readonly WindowSystem WindowSystem = new("BloomBell");
-    private MainWindow MainWindow { get; init; }
-
-    public Plugin()
+    public Plugin(IDalamudPluginInterface pluginInterface)
     {
-        Services.Initialize(PluginInterface);
-        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        try
+        {
+            
+        this.pluginInterface = pluginInterface;
+        Services.Initialize(pluginInterface);
+        Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
         partyListProvider = new PartyListProvider();
         partyNotifier = new PartyNotifier();
+        
+        partyListProvider.OnEvent += OnPartyChanged;
+
+        WindowSystem = new(pluginInterface.Manifest.InternalName);
 
         MainWindow = new MainWindow(this);
 
         WindowSystem.AddWindow(MainWindow);
 
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        Services.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
             HelpMessage = "A useful message to display in /xlhelp"
         });
 
-        Services.Framework.Update += OnFrameworkUpdate;
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
-
-        Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
-    }
-
-    private void OnFrameworkUpdate(IFramework framework)
-    {
-        if (!ClientState.IsLoggedIn || PlayerState.ContentId == 0)
-            return;
-
-        var currentPartySize = this.partyListProvider.GetPartySize();
-
-        _ = partyNotifier.UpdateAsync(currentPartySize, PlayerState.ContentId);
+        pluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
+        }
+        catch(Exception exception)
+        {
+            Services.PluginLog.Error(exception, "FODEU");
+            Dispose();
+            throw;
+        }
     }
 
     public void Dispose()
     {
-        partyNotifier?.Dispose();
-        partyListProvider?.Dispose();
+        pluginInterface?.UiBuilder.Draw -= WindowSystem.Draw;
+        pluginInterface?.UiBuilder.OpenMainUi -= ToggleMainUi;
+        partyListProvider.OnEvent -= OnPartyChanged;
 
-        Services.Framework.Update -= OnFrameworkUpdate;
-
-        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
-
+        Services.CommandManager.RemoveHandler(CommandName);
+        
         WindowSystem.RemoveAllWindows();
 
         MainWindow.Dispose();
+        
+        partyNotifier?.Dispose();
+        
+        partyListProvider?.Dispose();
+    }
 
-        CommandManager.RemoveHandler(CommandName);
+    public void ToggleMainUi() => MainWindow.Toggle();
+    
+    private void OnPartyChanged(bool status, PartyListMemberInfo member)
+    {
+        if (!Services.ClientState.IsLoggedIn || 
+            Services.PlayerState.ContentId == 0
+        ) return;
+
+        var currentPartySize = partyListProvider.GetPartySize();
+
+        Task.Run(async () => partyNotifier.UpdateAsync(currentPartySize, Services.PlayerState.ContentId));
     }
 
     private void OnCommand(string command, string args)
     {
         MainWindow.Toggle();
     }
-    public void ToggleMainUi() => MainWindow.Toggle();
 }

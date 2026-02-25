@@ -5,6 +5,8 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using BloomBell.src.integrations.discord;
 using BloomBell.src.lib.game.partylist;
+using BloomBell.src.lib.infra;
+using System.Threading.Tasks;
 
 namespace BloomBell.src.gui.windows;
 
@@ -13,16 +15,14 @@ public class MainWindow : Window, IDisposable
     private readonly PartyListProvider partyList;
     private readonly Plugin plugin;
 
-    public MainWindow(Plugin plugin)
-        : base("Warny##Main", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    public MainWindow(Plugin plugin) : base($"{plugin.pluginInterface.Manifest.Name}##Main")
     {
-        SizeConstraints = new WindowSizeConstraints
-        {
-            MinimumSize = new Vector2(375, 330),
-            MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
-        };
-        this.partyList = new PartyListProvider();
         this.plugin = plugin;
+        partyList = plugin.partyListProvider;
+
+        Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+
+        SizeConstraints = new(){ MinimumSize = new(375, 330) };
     }
 
     public void Dispose() { }
@@ -34,7 +34,7 @@ public class MainWindow : Window, IDisposable
         if (!plugin.Configuration.DiscordLinked)
         {
             ImGui.TextWrapped("Connect your Discord account to receive DM notifications.");
-            var pluginUserId = Plugin.PlayerState.ContentId.ToString();
+            var pluginUserId = Services.PlayerState.ContentId.ToString();
 
             if (ImGui.Button("Connect Discord"))
             {
@@ -52,13 +52,7 @@ public class MainWindow : Window, IDisposable
 
         if (child.Success)
         {
-            if (this.partyList == null)
-            {
-                Plugin.Log.Warning("PartyListProvider returned null.");
-                return;
-            }
-
-            var totalPartyMembers = this.partyList.GetPartySize();
+            var totalPartyMembers = partyList.GetPartySize();
 
             ImGui.Text($"Party members: {totalPartyMembers}");
         }

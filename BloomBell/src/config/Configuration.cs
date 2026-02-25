@@ -1,19 +1,18 @@
 ﻿using Dalamud.Configuration;
-using System;
+using Dalamud.Plugin;
 
 namespace BloomBell.src.config;
 
-[Serializable]
 public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public string OAuthLoginUrl = "http://localhost:3000/login"; // example config
+    public string OAuthLoginUrl = InternalConfiguration.OAuthLoginUrl;
 
     public bool DiscordLinked = false;
 
-    public void Save()
+    public void Save(IDalamudPluginInterface pluginInterface)
     {
-        Plugin.PluginInterface.SavePluginConfig(this);
+        pluginInterface.SavePluginConfig(this);
     }
 }
