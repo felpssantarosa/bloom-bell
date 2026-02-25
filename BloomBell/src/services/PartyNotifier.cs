@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using BloomBell.src.config;
 using System;
 
+namespace BloomBell.src.services;
+
 public class PartyNotifier() : IDisposable
 {
     private readonly HttpClient httpClient = new();
