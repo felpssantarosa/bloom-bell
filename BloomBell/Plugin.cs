@@ -22,8 +22,8 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
-    private readonly PartyListProvider partyListProvider = null!;
-    private readonly PartyNotifier partyNotifier = null!;
+    private readonly PartyListProvider partyListProvider;
+    private readonly PartyNotifier partyNotifier;
 
     private const string CommandName = "/warny";
 
@@ -68,6 +68,9 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        partyNotifier?.Dispose();
+        partyListProvider?.Dispose();
+
         Services.Framework.Update -= OnFrameworkUpdate;
 
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;

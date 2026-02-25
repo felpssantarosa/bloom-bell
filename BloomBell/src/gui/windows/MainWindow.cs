@@ -12,7 +12,6 @@ public class MainWindow : Window, IDisposable
 {
     private readonly PartyListProvider partyList;
     private readonly Plugin plugin;
-    private readonly DiscordIntegration discordIntegration;
 
     public MainWindow(Plugin plugin)
         : base("Warny##Main", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -22,8 +21,6 @@ public class MainWindow : Window, IDisposable
             MinimumSize = new Vector2(375, 330),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
-
-        this.discordIntegration = new DiscordIntegration();
         this.partyList = new PartyListProvider();
         this.plugin = plugin;
     }
@@ -41,7 +38,7 @@ public class MainWindow : Window, IDisposable
 
             if (ImGui.Button("Connect Discord"))
             {
-                this.discordIntegration.OpenDiscordOAuth(pluginUserId);
+                DiscordIntegration.OpenDiscordOAuth(pluginUserId);
             }
         }
         else
