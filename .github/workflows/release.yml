@@ -1,100 +1,103 @@
 name: Release BloomBell Plugin
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version (e.g., 0.0.0.3)"
-        required: false
-        default: ""
-      configuration:
-        description: "Build configuration (Debug or Release)"
-        required: false
-        default: "Release"
-      changelog:
-        description: "Automatically generate changelog from Git commits"
-        required: false
-        default: "false"
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Release version (e.g., 0.0.0.3)"
+                required: false
+                default: ""
+            configuration:
+                description: "Build configuration (Debug or Release)"
+                required: false
+                default: "Release"
+            changelog:
+                description: "Automatically generate changelog from Git commits"
+                required: false
+                default: "false"
 
 jobs:
-  release:
-    runs-on: windows-latest
-    env:
-      Solution_Name: BloomBell
-      Plugin_Name: BloomBell
+    release:
+        runs-on: windows-latest
+        permissions:
+            contents: write
+        env:
+            Solution_Name: BloomBell
+            Plugin_Name: BloomBell
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 10.0.x
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+            - name: Cache NuGet packages
+              uses: actions/cache@v3
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
 
-      - name: Download Dalamud
-        run: |
-          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
-          Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
+            - name: Download Dalamud
+              run: |
+                  Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+                  Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
-      - name: Restore dependencies
-        run: dotnet restore
+            - name: Restore dependencies
+              run: dotnet restore
 
-      - name: Build plugin
-        run: dotnet build -c ${{ github.event.inputs.configuration || 'Release' }} --no-restore
+            - name: Build plugin
+              run: dotnet build -c ${{ github.event.inputs.configuration || 'Release' }} --no-restore
 
-      - name: Prepare release artifacts
-        run: |
-          $buildPath = ".\${{ env.Plugin_Name }}\bin\x64\${{ github.event.inputs.configuration || 'Release' }}\${{ env.Plugin_Name }}\*"
-          if (-not (Test-Path $buildPath)) {
-              Write-Error "Build artifacts not found at $buildPath"
-              exit 1
-          }
-          New-Item -ItemType Directory -Force -Path "releases"
-          Copy-Item -Path $buildPath -Destination "releases" -Recurse
+            - name: Prepare release artifacts
+              run: |
+                  $buildPath = ".\${{ env.Plugin_Name }}\bin\x64\${{ github.event.inputs.configuration || 'Release' }}\${{ env.Plugin_Name }}\*"
+                  if (-not (Test-Path $buildPath)) {
+                      Write-Error "Build artifacts not found at $buildPath"
+                      exit 1
+                  }
+                  New-Item -ItemType Directory -Force -Path "releases"
+                  Copy-Item -Path $buildPath -Destination "releases" -Recurse
 
-      - name: Get plugin version
-        id: version
-        run: |
-          $xml = [xml](Get-Content ".\${{ env.Plugin_Name }}\${{ env.Plugin_Name }}.csproj")
-          $csprojVersion = $xml.Project.PropertyGroup.Version
-          $inputVersion = "${{ github.event.inputs.version }}"
-          if (![string]::IsNullOrEmpty($inputVersion)) {
-              $version = $inputVersion
-          } else {
-              $version = $csprojVersion
-          }
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "Plugin version: $version"
+            - name: Get plugin version
+              id: version
+              run: |
+                  $xml = [xml](Get-Content ".\${{ env.Plugin_Name }}\${{ env.Plugin_Name }}.csproj")
+                  $csprojVersion = $xml.Project.PropertyGroup.Version
+                  $inputVersion = "${{ github.event.inputs.version }}"
+                  if (![string]::IsNullOrEmpty($inputVersion)) {
+                      $version = $inputVersion
+                  } else {
+                      $version = $csprojVersion
+                  }
+                  echo "version=$version" >> $env:GITHUB_OUTPUT
+                  echo "Plugin version: $version"
 
-      - name: Generate changelog
-        if: ${{ github.event.inputs.changelog == 'true' }}
-        run: |
-          $latestTag = git describe --tags --abbrev=0
-          git log $latestTag..HEAD --pretty=format:"- %s" > RELEASE_NOTES.md
+            - name: Generate changelog
+              if: ${{ github.event.inputs.changelog == 'true' }}
+              run: |
+                  $latestTag = git describe --tags --abbrev=0
+                  git log $latestTag..HEAD --pretty=format:"- %s" > RELEASE_NOTES.md
 
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        with:
-          artifacts: "releases/*"
-          bodyFile: "RELEASE_NOTES.md"
-          draft: ${{ github.event_name == 'workflow_dispatch' }}
-          tag: ${{ github.ref_name }}
-          name: "Release ${{ steps.version.outputs.version }}"
+            - name: Create GitHub Release
+              uses: ncipollo/release-action@v1
+              if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  artifacts: "releases/*"
+                  bodyFile: "RELEASE_NOTES.md"
+                  draft: ${{ github.event_name == 'workflow_dispatch' }}
+                  tag: ${{ github.ref_name }}
+                  name: "Release ${{ steps.version.outputs.version }}"
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.Plugin_Name }}-${{ steps.version.outputs.version }}
-          path: releases/*
-          retention-days: 30
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ env.Plugin_Name }}-${{ steps.version.outputs.version }}
+                  path: releases/*
+                  retention-days: 30
