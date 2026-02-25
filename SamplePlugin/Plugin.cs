@@ -8,6 +8,7 @@ using SamplePlugin.src.gui.windows;
 using SamplePlugin.src.lib.infra;
 using SamplePlugin.src.config;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
+using SamplePlugin.src.lib.game.partylist;
 
 namespace SamplePlugin;
 
@@ -21,13 +22,14 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    private readonly PartyListProvider partyListProvider = null!;
+    private readonly PartyNotifier partyNotifier = null!;
 
     private const string CommandName = "/warny";
 
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("SamplePlugin");
-    private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
 
     public Plugin()
@@ -35,13 +37,11 @@ public sealed class Plugin : IDalamudPlugin
         Services.Initialize(PluginInterface);
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        // You might normally want to embed resources and load them from the manifest stream
-        var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
+        partyListProvider = new PartyListProvider();
+        partyNotifier = new PartyNotifier();
 
-        ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImagePath);
+        MainWindow = new MainWindow(this);
 
-        WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(MainWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
@@ -49,24 +49,32 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "A useful message to display in /xlhelp"
         });
 
-        // Tell the UI system that we want our windows to be drawn through the window system
+        Services.Framework.Update += OnFrameworkUpdate;
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
 
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
     }
 
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        if (!ClientState.IsLoggedIn || PlayerState.ContentId == 0)
+            return;
+
+        var currentPartySize = this.partyListProvider.GetPartySize();
+
+        _ = partyNotifier.UpdateAsync(currentPartySize, PlayerState.ContentId);
+    }
+
     public void Dispose()
     {
+        Services.Framework.Update -= OnFrameworkUpdate;
+
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
 
         WindowSystem.RemoveAllWindows();
 
-        ConfigWindow.Dispose();
         MainWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
@@ -76,7 +84,5 @@ public sealed class Plugin : IDalamudPlugin
     {
         MainWindow.Toggle();
     }
-
-    public void ToggleConfigUi() => ConfigWindow.Toggle();
     public void ToggleMainUi() => MainWindow.Toggle();
 }
