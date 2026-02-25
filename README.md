@@ -20,8 +20,6 @@ This plugin was made as an intent to solve a problem that players may have when 
 - You need to be in the same server as the bot for it to work.
 - Your privacy settings must allow you to receive DMs from the server the bot is present in at very least.
 
-<br/>
-
 ## 🌐 Installation
 
 ### Adding a Custom Plugin Repository
