@@ -3,7 +3,7 @@
         "Author": "Senya",
         "Name": "Bloom Bell",
         "InternalName": "BloomBell",
-        "AssemblyVersion": "0.0.0.6",
+        "AssemblyVersion": "0.0.0.7",
         "Description": "Notifications for when you are waiting to fill.",
         "ApplicableVersion": "any",
         "RepoUrl": "https://github.com/felpssantarosa/bloom-bell",
