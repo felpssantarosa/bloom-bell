@@ -17,6 +17,7 @@
         "Punchline": "No more alt+tab anxiety on party finder!",
         "AcceptsFeedback": true,
         "DownloadLinkInstall": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.7/latest.zip",
-        "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.7/latest.zip"
+        "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.7/latest.zip",
+        "IconUrl": "https://raw.githubusercontent.com/felpssantarosa/bloom-bell/master/BloomBell/resources/icon.png"
     }
 ]
