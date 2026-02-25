@@ -6,6 +6,7 @@ using BloomBell.src.gui.windows;
 using BloomBell.src.lib.infra;
 using BloomBell.src.config;
 using BloomBell.src.lib.game.partylist;
+using BloomBell.src.services;
 using System;
 
 namespace BloomBell;
@@ -17,6 +18,8 @@ public sealed class Plugin : IDalamudPlugin
     internal readonly IDalamudPluginInterface pluginInterface;
     internal readonly PartyListProvider partyListProvider;
     internal readonly PartyNotifier partyNotifier;
+    internal readonly AuthNotifier authNotifier;
+    internal readonly AuthRouter authRouter;
 
     internal readonly WindowSystem WindowSystem;
     internal readonly MainWindow MainWindow;
@@ -26,33 +29,35 @@ public sealed class Plugin : IDalamudPlugin
     {
         try
         {
-            
-        this.pluginInterface = pluginInterface;
-        Services.Initialize(pluginInterface);
-        Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            this.pluginInterface = pluginInterface;
 
-        partyListProvider = new PartyListProvider();
-        partyNotifier = new PartyNotifier();
-        
-        partyListProvider.OnEvent += OnPartyChanged;
+            Services.Initialize(pluginInterface);
+            Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        WindowSystem = new(pluginInterface.Manifest.InternalName);
+            partyListProvider = new PartyListProvider();
+            partyNotifier = new PartyNotifier();
+            authNotifier = new AuthNotifier();
+            authRouter = new AuthRouter(Configuration, authNotifier);
 
-        MainWindow = new MainWindow(this);
+            authNotifier.OnAuthCompleted += authRouter.HandleAuthCompleted;
+            partyListProvider.OnEvent += OnPartyChanged;
 
-        WindowSystem.AddWindow(MainWindow);
+            WindowSystem = new(pluginInterface.Manifest.InternalName);
 
-        Services.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
-        {
-            HelpMessage = "A useful message to display in /xlhelp"
-        });
+            MainWindow = new MainWindow(this);
+            WindowSystem.AddWindow(MainWindow);
 
-        pluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
+            Services.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+            {
+                HelpMessage = "Use /bb to toggle the main window."
+            });
+
+            pluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+            pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
-            Services.PluginLog.Error(exception, "FODEU");
+            Services.PluginLog.Error(exception, "Failed to initialize plugin.");
             Dispose();
             throw;
         }
@@ -65,21 +70,21 @@ public sealed class Plugin : IDalamudPlugin
         partyListProvider.OnEvent -= OnPartyChanged;
 
         Services.CommandManager.RemoveHandler(CommandName);
-        
+
         WindowSystem.RemoveAllWindows();
 
         MainWindow.Dispose();
-        
+        authRouter.Dispose();
+        authNotifier?.Dispose();
         partyNotifier?.Dispose();
-        
         partyListProvider?.Dispose();
     }
 
     public void ToggleMainUi() => MainWindow.Toggle();
-    
+
     private void OnPartyChanged(bool status, PartyListMemberInfo member)
     {
-        if (!Services.ClientState.IsLoggedIn || 
+        if (!Services.ClientState.IsLoggedIn ||
             Services.PlayerState.ContentId == 0
         ) return;
 

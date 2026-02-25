@@ -22,12 +22,12 @@ public class MainWindow : Window, IDisposable
 
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
 
-        SizeConstraints = new(){ MinimumSize = new(375, 330) };
+        SizeConstraints = new() { MinimumSize = new(375, 330) };
     }
 
     public void Dispose() { }
 
-    public override void Draw()
+    public override async void Draw()
     {
         ImGui.Text("Discord Integration");
 
@@ -38,7 +38,7 @@ public class MainWindow : Window, IDisposable
 
             if (ImGui.Button("Connect Discord"))
             {
-                DiscordIntegration.OpenDiscordOAuth(pluginUserId);
+                await plugin.authRouter.Authenticate("discord");
             }
         }
         else
