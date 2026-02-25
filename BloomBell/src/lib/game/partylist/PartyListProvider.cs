@@ -76,7 +76,7 @@ public class PartyListProvider : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    Plugin.Log.Error(exception, "Unexpected Exception");
+                    Services.PluginLog.Error(exception, "Unexpected Exception");
                 }
             }
 
@@ -90,13 +90,13 @@ public class PartyListProvider : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    Plugin.Log.Error(exception, "Unexpected Exception");
+                    Services.PluginLog.Error(exception, "Unexpected Exception");
                 }
             }
         }
         catch (Exception exception)
         {
-            Plugin.Log.Error(exception, "Unexpected Exception");
+            Services.PluginLog.Error(exception, "Unexpected Exception");
             Dispose();
         }
     }
@@ -158,21 +158,22 @@ public class PartyListProvider : IDisposable
     public unsafe int GetPartySize()
     {
         if (!InfoProxyCrossRealm.IsCrossRealmParty())
+        {
             return Services.PartyList.Count;
+        }
 
-        var proxy = InfoProxyCrossRealm.Instance();
-        if (proxy == null)
-            return 0;
+        var infoProxyCrossRealmInstance = InfoProxyCrossRealm.Instance();
+        if (infoProxyCrossRealmInstance == null) return 0;
 
         var total = 0;
-        ref readonly var info = ref *proxy;
+        ref readonly var infoProxyCrossRealm = ref *infoProxyCrossRealmInstance;
 
-        var groups = info.CrossRealmGroups;
-        int groupCount = info.GroupCount;
+        var groups = infoProxyCrossRealm.CrossRealmGroups;
+        int groupCount = infoProxyCrossRealm.GroupCount;
 
-        for (var g = 0; g < groupCount; g++)
+        for (var index = 0; index < groupCount; index++)
         {
-            ref readonly var group = ref groups[g];
+            ref readonly var group = ref groups[index];
             total += group.GroupMemberCount;
         }
 
