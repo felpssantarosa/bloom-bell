@@ -1,20 +1,22 @@
-{
-    "Author": "Senya",
-    "Name": "Bloom Bell",
-    "InternalName": "BloomBell",
-    "AssemblyVersion": "0.0.0.6",
-    "Description": "Notifications for when you are waiting to fill.",
-    "ApplicableVersion": "any",
-    "RepoUrl": "https://github.com/felpssantarosa/bloom-bell",
-    "Tags": ["Notification", "Raid", "Party Finder", "Discord"],
-    "CategoryTags": ["utility"],
-    "DalamudApiLevel": 14,
-    "LoadRequiredState": 0,
-    "LoadSync": false,
-    "CanUnloadAsync": false,
-    "LoadPriority": 0,
-    "Punchline": "No more alt+tab anxiety on party finder!",
-    "AcceptsFeedback": true,
-    "DownloadLinkInstall": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.5/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.5/latest.zip"
-}
+[
+    {
+        "Author": "Senya",
+        "Name": "Bloom Bell",
+        "InternalName": "BloomBell",
+        "AssemblyVersion": "0.0.0.6",
+        "Description": "Notifications for when you are waiting to fill.",
+        "ApplicableVersion": "any",
+        "RepoUrl": "https://github.com/felpssantarosa/bloom-bell",
+        "Tags": ["Notification", "Raid", "Party Finder", "Discord"],
+        "CategoryTags": ["utility"],
+        "DalamudApiLevel": 14,
+        "LoadRequiredState": 0,
+        "LoadSync": false,
+        "CanUnloadAsync": false,
+        "LoadPriority": 0,
+        "Punchline": "No more alt+tab anxiety on party finder!",
+        "AcceptsFeedback": true,
+        "DownloadLinkInstall": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.5/latest.zip",
+        "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.0.5/latest.zip"
+    }
+]
