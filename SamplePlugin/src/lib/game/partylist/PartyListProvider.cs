@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using SamplePlugin.Library.Infra;
+using SamplePlugin.src.lib.infra;
 
-namespace SamplePlugin.Library.Game.PartyList;
+namespace SamplePlugin.src.lib.game.partylist;
 
 public class PartyListProvider : IDisposable
 {

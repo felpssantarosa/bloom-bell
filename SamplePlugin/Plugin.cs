@@ -4,8 +4,9 @@ using Dalamud.Plugin;
 using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
-using SamplePlugin.Windows;
-using SamplePlugin.Library.Infra;
+using SamplePlugin.src.gui.windows;
+using SamplePlugin.src.lib.infra;
+using SamplePlugin.src.config;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 
 namespace SamplePlugin;
@@ -21,7 +22,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
-    private const string CommandName = "/pmycommand";
+    private const string CommandName = "/warny";
 
     public Configuration Configuration { get; init; }
 

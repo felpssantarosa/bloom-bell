@@ -2,8 +2,9 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
+using SamplePlugin.src.config;
 
-namespace SamplePlugin.Windows;
+namespace SamplePlugin.src.gui.windows;
 
 public class ConfigWindow : Window, IDisposable
 {
