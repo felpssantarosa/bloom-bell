@@ -4,6 +4,10 @@
 
 This plugin was made as an intent to solve a problem that players may have when they need to afk for a moment or just want to turn off their brains and not worry about the final fantasy xiv window for a moment.
 
+<br/>
+
+> WARNING: if you plan on self hosting the bot, make sure to clone the backend repository as well and follow the instructions there to set it up. The bot is required for the plugin to work, and you won't be able to receive notifications without it. The link to the backend repository is [here](https://github.com/felpssantarosa/bloom-bell-backend).
+
 # Features
 
 - Discord integration to send you a message when your party is ready.
