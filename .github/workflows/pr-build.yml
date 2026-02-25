@@ -1,39 +1,37 @@
-name: Sample PR Builder for SamplePlugin
+name: Sample PR Builder for BloomBell
 
 on:
-  pull_request:
-    branches: [ master ]
+    pull_request:
+        branches: [master]
 
 jobs:
+    build:
+        runs-on: windows-2022
 
-  build:
-    runs-on: windows-2022
+        env:
+            Solution_Name: BloomBell
 
-    env:
-      Solution_Name: SamplePlugin
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+            - name: Install .NET
+              uses: actions/setup-dotnet@v5
+              with:
+                  dotnet-version: 9.0.x
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 9.0.x
+            - name: Download Dalamud
+              run: |
+                  Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+                  Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
-    - name: Download Dalamud
-      run: |
-        Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
-        Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
+            - name: Build with dotnet
+              run: dotnet build --configuration Release
 
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
-
-    - name: Store artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: SamplePlugin
-        path: .\SamplePlugin\bin\x64\Release\SamplePlugin\*
-        if-no-files-found: error
-        retention-days: 1
-
+            - name: Store artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: BloomBell
+                  path: .\BloomBell\bin\x64\Release\BloomBell\*
+                  if-no-files-found: error
+                  retention-days: 1

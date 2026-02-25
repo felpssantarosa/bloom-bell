@@ -1,4 +1,4 @@
-namespace SamplePlugin.src.config;
+namespace BloomBell.src.config;
 
 public class InternalConfiguration
 {

@@ -6,7 +6,7 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
-namespace SamplePlugin.src.lib.infra;
+namespace BloomBell.src.lib.infra;
 
 public class Services
 {

@@ -4,13 +4,13 @@ using Dalamud.Plugin;
 using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
-using SamplePlugin.src.gui.windows;
-using SamplePlugin.src.lib.infra;
-using SamplePlugin.src.config;
+using BloomBell.src.gui.windows;
+using BloomBell.src.lib.infra;
+using BloomBell.src.config;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
-using SamplePlugin.src.lib.game.partylist;
+using BloomBell.src.lib.game.partylist;
 
-namespace SamplePlugin;
+namespace BloomBell;
 
 public sealed class Plugin : IDalamudPlugin
 {
@@ -29,7 +29,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public Configuration Configuration { get; init; }
 
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    public readonly WindowSystem WindowSystem = new("BloomBell");
     private MainWindow MainWindow { get; init; }
 
     public Plugin()

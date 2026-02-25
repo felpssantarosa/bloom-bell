@@ -1,4 +1,4 @@
-namespace SamplePlugin.src.lib.game.partylist;
+namespace BloomBell.src.lib.game.partylist;
 
 public readonly struct PartyListMemberInfo
 {

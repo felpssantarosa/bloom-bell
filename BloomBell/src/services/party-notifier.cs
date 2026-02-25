@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SamplePlugin.src.config;
+using BloomBell.src.config;
 
 public class PartyNotifier
 {

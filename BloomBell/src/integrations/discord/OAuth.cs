@@ -1,7 +1,7 @@
 using System;
 using Dalamud.Utility;
 
-namespace SamplePlugin.src.integrations.discord;
+namespace BloomBell.src.integrations.discord;
 
 public class DiscordIntegration
 {

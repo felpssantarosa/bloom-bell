@@ -1,7 +1,7 @@
 ﻿using Dalamud.Configuration;
 using System;
 
-namespace SamplePlugin.src.config;
+namespace BloomBell.src.config;
 
 [Serializable]
 public class Configuration : IPluginConfiguration
