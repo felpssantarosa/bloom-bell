@@ -10,7 +10,7 @@ using Dalamud.Utility;
 
 namespace BloomBell.src.services;
 
-public class AuthNotifier() : IDisposable
+public class WebSocketHandler() : IDisposable
 {
     private ClientWebSocket? ws;
 

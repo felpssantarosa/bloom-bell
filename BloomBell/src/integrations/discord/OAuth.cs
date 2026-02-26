@@ -7,13 +7,13 @@ using Dalamud.Utility;
 
 namespace BloomBell.src.integrations.discord;
 
-public class DiscordOAuth(Configuration configuration, AuthNotifier authNotifier) : IOAuthProvider, IDisposable
+public class DiscordOAuth(Configuration configuration, WebSocketHandler webSocketHandler) : IOAuthProvider, IDisposable
 {
     private const string ClientId = "1476010311449448530";
     private readonly string provider = "discord";
 
     private readonly Configuration configuration = configuration;
-    private readonly AuthNotifier authNotifier = authNotifier;
+    private readonly WebSocketHandler webSocketHandler = webSocketHandler;
 
 
     public void Dispose() { }
@@ -24,7 +24,7 @@ public class DiscordOAuth(Configuration configuration, AuthNotifier authNotifier
         {
             Services.PluginLog.Info($"Starting WS connection for {userId} ({provider})");
 
-            await authNotifier.Connect(userId, provider);
+            await webSocketHandler.Connect(userId, provider);
 
             Services.PluginLog.Info("WS connected, opening OAuth browser");
 

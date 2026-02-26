@@ -8,15 +8,15 @@ using BloomBell.src.services;
 public class AuthRouter : IDisposable
 {
     private readonly Configuration configuration;
-    private readonly AuthNotifier authNotifier;
+    private readonly WebSocketHandler webSocketHandler;
     private readonly DiscordOAuth discordOAuth;
 
-    public AuthRouter(Configuration configuration, AuthNotifier authNotifier)
+    public AuthRouter(Configuration configuration, WebSocketHandler webSocketHandler)
     {
         this.configuration = configuration;
-        this.authNotifier = authNotifier;
+        this.webSocketHandler = webSocketHandler;
 
-        discordOAuth = new DiscordOAuth(this.configuration, this.authNotifier);
+        discordOAuth = new DiscordOAuth(this.configuration, this.webSocketHandler);
     }
 
     public void Dispose()

@@ -18,7 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     internal readonly IDalamudPluginInterface pluginInterface;
     internal readonly PartyListProvider partyListProvider;
     internal readonly PartyNotifier partyNotifier;
-    internal readonly AuthNotifier authNotifier;
+    internal readonly WebSocketHandler webSocketHandler;
     internal readonly AuthRouter authRouter;
 
     internal readonly WindowSystem WindowSystem;
@@ -36,10 +36,10 @@ public sealed class Plugin : IDalamudPlugin
 
             partyListProvider = new PartyListProvider();
             partyNotifier = new PartyNotifier();
-            authNotifier = new AuthNotifier();
-            authRouter = new AuthRouter(Configuration, authNotifier);
+            webSocketHandler = new WebSocketHandler();
+            authRouter = new AuthRouter(Configuration, webSocketHandler);
 
-            authNotifier.OnAuthCompleted += authRouter.HandleAuthCompleted;
+            webSocketHandler.OnAuthCompleted += authRouter.HandleAuthCompleted;
             partyListProvider.OnEvent += OnPartyChanged;
 
             WindowSystem = new(pluginInterface.Manifest.InternalName);
@@ -75,7 +75,7 @@ public sealed class Plugin : IDalamudPlugin
 
         MainWindow.Dispose();
         authRouter.Dispose();
-        authNotifier?.Dispose();
+        webSocketHandler?.Dispose();
         partyNotifier?.Dispose();
         partyListProvider?.Dispose();
     }
