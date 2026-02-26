@@ -1,10 +1,10 @@
 using System;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using BloomBell.src.config;
 using BloomBell.src.lib.infra;
 using Dalamud.Utility;
 
@@ -30,7 +30,7 @@ public class AuthNotifier() : IDisposable
         try
         {
             await ws.ConnectAsync(
-                new Uri("ws://localhost:3334"),
+                new Uri(InternalConfiguration.baseServerWsUri),
                 CancellationToken.None
             );
 
@@ -39,8 +39,8 @@ public class AuthNotifier() : IDisposable
             var registerObj = new
             {
                 type = "register",
-                userId = userId,
-                provider = provider
+                userId,
+                provider
             };
 
             var json = JsonSerializer.Serialize(registerObj);
