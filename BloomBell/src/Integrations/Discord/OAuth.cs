@@ -1,8 +1,8 @@
 using System;
-using BloomBell.src.lib.infra;
 using BloomBell.src.services;
 using Dalamud.Utility;
 using BloomBell.src.Configuration;
+using BloomBell.src.Library.External.Services;
 
 namespace BloomBell.src.integrations.discord;
 
@@ -21,11 +21,11 @@ public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler we
     {
         try
         {
-            Services.PluginLog.Info($"Starting WS connection for {userId} ({provider})");
+            GameServices.PluginLog.Info($"Starting WS connection for {userId} ({provider})");
 
-            await webSocketHandler.Connect(userId, provider);
+            await webSocketHandler.ConnectAndRegisterAsync(userId, provider);
 
-            Services.PluginLog.Info("WS connected, opening OAuth browser");
+            GameServices.PluginLog.Info("WS connected, opening OAuth browser");
 
             var oauthUrl =
                 "https://discord.com/api/oauth2/authorize" +
@@ -39,13 +39,13 @@ public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler we
         }
         catch (Exception ex)
         {
-            Services.PluginLog.Error(ex, "Discord authentication crashed");
+            GameServices.PluginLog.Error(ex, "Discord authentication crashed");
         }
     }
 
     public void AuthCompletedHandler(string provider)
     {
-        Services.PluginLog.Info($"Auth completed for: {provider}");
+        GameServices.PluginLog.Info($"Auth completed for: {provider}");
 
         configuration.DiscordLinked = true;
     }

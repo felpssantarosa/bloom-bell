@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Numerics;
+using BloomBell.src.Library.External.Game.PartyList;
+using BloomBell.src.Library.External.Services;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using BloomBell.src.lib.game.partylist;
-using BloomBell.src.lib.infra;
 
 namespace BloomBell.src.GUI.GameWindows;
 
@@ -32,7 +32,7 @@ public class MainWindow : Window, IDisposable
         if (!plugin.Configuration.DiscordLinked)
         {
             ImGui.TextWrapped("Connect your Discord account to receive DM notifications.");
-            var pluginUserId = Services.PlayerState.ContentId.ToString();
+            var pluginUserId = GameServices.PlayerState.ContentId.ToString();
 
             if (ImGui.Button("Connect Discord"))
             {

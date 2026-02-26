@@ -2,12 +2,12 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
-using BloomBell.src.gui.windows;
-using BloomBell.src.lib.infra;
-using BloomBell.src.config;
-using BloomBell.src.lib.game.partylist;
 using BloomBell.src.services;
 using System;
+using BloomBell.src.Library.External.Game.PartyList;
+using BloomBell.src.GUI.GameWindows;
+using BloomBell.src.Configuration;
+using BloomBell.src.Library.External.Services;
 
 namespace BloomBell;
 
@@ -23,7 +23,7 @@ public sealed class Plugin : IDalamudPlugin
 
     internal readonly WindowSystem WindowSystem;
     internal readonly MainWindow MainWindow;
-    internal readonly Configuration Configuration;
+    internal readonly PluginConfiguration Configuration;
 
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
@@ -31,8 +31,8 @@ public sealed class Plugin : IDalamudPlugin
         {
             this.pluginInterface = pluginInterface;
 
-            Services.Initialize(pluginInterface);
-            Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            GameServices.Initialize(pluginInterface);
+            Configuration = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
 
             partyListProvider = new PartyListProvider();
             partyNotifier = new PartyNotifier();
@@ -47,7 +47,7 @@ public sealed class Plugin : IDalamudPlugin
             MainWindow = new MainWindow(this);
             WindowSystem.AddWindow(MainWindow);
 
-            Services.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+            GameServices.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Use /bb to toggle the main window."
             });
@@ -57,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         }
         catch (Exception exception)
         {
-            Services.PluginLog.Error(exception, "Failed to initialize plugin.");
+            GameServices.PluginLog.Error(exception, "Failed to initialize plugin.");
             Dispose();
             throw;
         }
@@ -69,7 +69,7 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface?.UiBuilder.OpenMainUi -= ToggleMainUi;
         partyListProvider.OnEvent -= OnPartyChanged;
 
-        Services.CommandManager.RemoveHandler(CommandName);
+        GameServices.CommandManager.RemoveHandler(CommandName);
 
         WindowSystem.RemoveAllWindows();
 
@@ -84,13 +84,13 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnPartyChanged(bool status, PartyListMemberInfo member)
     {
-        if (!Services.ClientState.IsLoggedIn ||
-            Services.PlayerState.ContentId == 0
+        if (!GameServices.ClientState.IsLoggedIn ||
+            GameServices.PlayerState.ContentId == 0
         ) return;
 
         var currentPartySize = partyListProvider.GetPartySize();
 
-        Task.Run(async () => partyNotifier.UpdateAsync(currentPartySize, Services.PlayerState.ContentId));
+        Task.Run(async () => partyNotifier.UpdateAsync(currentPartySize, GameServices.PlayerState.ContentId));
     }
 
     private void OnCommand(string command, string args)
