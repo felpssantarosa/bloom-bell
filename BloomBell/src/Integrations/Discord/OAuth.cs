@@ -23,7 +23,7 @@ public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler we
         {
             GameServices.PluginLog.Info($"Starting WS connection for {userId} ({provider})");
 
-            await webSocketHandler.ConnectAndRegisterAsync(userId, provider);
+            await webSocketHandler.StartAuthAsync(userId, provider);
 
             GameServices.PluginLog.Info("WS connected, opening OAuth browser");
 

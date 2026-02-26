@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -17,41 +18,32 @@ public sealed class WebSocketHandler : IDisposable
 
     public event Action<string>? OnAuthCompleted;
 
+    public bool IsConnected => socket is { State: WebSocketState.Open };
+
     public void Dispose()
     {
-        cancellationTokenSource?.Cancel();
+        try
+        {
+            cancellationTokenSource?.Cancel();
+        }
+        catch
+        {
+            GameServices.PluginLog.Warning(
+                "Failed to cancel WebSocket receive loop, it may still be running until the next message is received."
+            );
+        }
+
         socket?.Dispose();
         cancellationTokenSource?.Dispose();
     }
 
-    public async Task ConnectAndRegisterAsync(string userId, string provider)
+    public async Task StartAuthAsync(string userId, string provider)
     {
-        GameServices.PluginLog.Info($"Connecting WS to backend for user {userId}...");
-
-        socket = new ClientWebSocket();
-        cancellationTokenSource = new CancellationTokenSource();
-
-        try
+        if (socket is null || socket.State != WebSocketState.Open)
         {
-            await socket.ConnectAsync(
-                new Uri(InternalConfiguration.baseServerWsUri),
-                cancellationTokenSource.Token
-            );
-
-            GameServices.PluginLog.Info("WebSocket connected successfully!");
-
-            await SendRegistrationAsync(userId, provider);
-
-            _ = RunReceiveLoopAsync(cancellationTokenSource.Token);
+            await ConnectAsync();
         }
-        catch (Exception ex)
-        {
-            GameServices.PluginLog.Error(ex, "WebSocket connection failed!");
-        }
-    }
 
-    private async Task SendRegistrationAsync(string userId, string provider)
-    {
         var payload = new
         {
             type = "register",
@@ -73,21 +65,20 @@ public sealed class WebSocketHandler : IDisposable
     }
 
     /// <summary>
-    /// Continuously listens for incoming WebSocket messages until the connection closes.
+    /// Continuously listens for incoming WebSocket messages until the connection closes
+    /// or the plugin is disposed.
     /// </summary>
     private async Task RunReceiveLoopAsync(CancellationToken token)
     {
-        var buffer = new byte[1024];
-
         try
         {
             while (socket is { State: WebSocketState.Open } && !token.IsCancellationRequested)
             {
-                var result = await ReceiveMessageAsync(buffer, token);
-                if (result == null)
-                    break;
+                var message = await ReceiveMessageAsync(token);
 
-                await ProcessMessageAsync(result);
+                if (message == null) break;
+
+                await ProcessMessageAsync(message);
             }
         }
         catch (OperationCanceledException)
@@ -104,11 +95,26 @@ public sealed class WebSocketHandler : IDisposable
         }
     }
 
-    private async Task<string?> ReceiveMessageAsync(byte[] buffer, CancellationToken token)
+    private async Task<string?> ReceiveMessageAsync(CancellationToken cancellationToken)
     {
-        try
+        if (socket == null) return null;
+
+        var buffer = new byte[4096];
+        using var memoryStream = new MemoryStream();
+
+        while (true)
         {
-            var result = await socket!.ReceiveAsync(buffer, token);
+            WebSocketReceiveResult result;
+
+            try
+            {
+                result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            }
+            catch (WebSocketException ex)
+            {
+                GameServices.PluginLog.Warning($"WebSocket error: {ex.Message}");
+                return null;
+            }
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -116,21 +122,17 @@ public sealed class WebSocketHandler : IDisposable
                 return null;
             }
 
-            if (result.MessageType != WebSocketMessageType.Text)
-                return string.Empty;
+            memoryStream.Write(buffer, 0, result.Count);
 
-            return Encoding.UTF8.GetString(buffer, 0, result.Count);
+            if (result.EndOfMessage)
+                break;
         }
-        catch (WebSocketException ex)
-        {
-            GameServices.PluginLog.Warning($"WebSocket error: {ex.Message}");
-            return null;
-        }
+
+        return Encoding.UTF8.GetString(memoryStream.ToArray());
     }
-
     private async Task ProcessMessageAsync(string message)
     {
-        if (string.IsNullOrEmpty(message))
+        if (string.IsNullOrWhiteSpace(message))
             return;
 
         AuthMessage? authMessage;
@@ -145,29 +147,84 @@ public sealed class WebSocketHandler : IDisposable
             return;
         }
 
-        if (authMessage?.Type == "authComplete")
+        if (authMessage == null) return;
+
+        switch (authMessage.Type)
         {
-            await HandleAuthCompleteAsync(authMessage);
+            case "authComplete":
+                await HandleAuthCompleteAsync(authMessage);
+                break;
+
+            default:
+                GameServices.PluginLog.Debug($"Unhandled WS message type: {authMessage.Type}");
+                break;
         }
     }
 
     private async Task HandleAuthCompleteAsync(AuthMessage message)
     {
         GameServices.PluginLog.Info(
-            $"{message.Provider.FirstCharToUpper()} auth complete for user {message.UserId}"
+            $"{message.Provider.FirstCharToUpper()} auth complete for user with ID {message.UserId}"
         );
 
         OnAuthCompleted?.Invoke(message.Provider);
 
-        if (socket?.State == WebSocketState.Open)
+        await CloseWebSocketAsync();
+    }
+
+    private async Task ConnectAsync()
+    {
+        if (socket is { State: WebSocketState.Open })
+        {
+            GameServices.PluginLog.Info("WebSocket already connected.");
+            return;
+        }
+
+        GameServices.PluginLog.Info("Connecting WebSocket to backend...");
+
+        socket = new ClientWebSocket();
+        cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            await socket.ConnectAsync(
+                new Uri(InternalConfiguration.baseServerWsUri),
+                cancellationTokenSource.Token
+            );
+
+            GameServices.PluginLog.Info("WebSocket connected successfully!");
+
+            _ = RunReceiveLoopAsync(cancellationTokenSource.Token);
+        }
+        catch (Exception ex)
+        {
+            GameServices.PluginLog.Error(ex, "WebSocket connection failed!");
+        }
+    }
+
+    private async Task CloseWebSocketAsync()
+    {
+        if (socket is { State: WebSocketState.Open })
         {
             GameServices.PluginLog.Info("Closing WebSocket connection...");
 
-            await socket.CloseAsync(
-                WebSocketCloseStatus.NormalClosure,
-                "Auth complete",
-                CancellationToken.None
-            );
+            try
+            {
+                await socket.CloseAsync(
+                    WebSocketCloseStatus.NormalClosure,
+                    "Closing connection",
+                    cancellationTokenSource?.Token ?? CancellationToken.None
+                );
+            }
+            catch (Exception ex)
+            {
+                GameServices.PluginLog.Error(ex, "Error while closing WebSocket");
+            }
+
+            socket.Dispose();
+            socket = null;
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = null;
         }
     }
 }
