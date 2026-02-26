@@ -1,4 +1,4 @@
-namespace BloomBell.src.config;
+namespace BloomBell.src.Configuration;
 
 public static class InternalConfiguration
 {

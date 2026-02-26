@@ -4,8 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BloomBell.src.config;
-using BloomBell.src.lib.infra;
+using BloomBell.src.Configuration;
+using BloomBell.src.Library.External.Services;
 using Dalamud.Utility;
 
 namespace BloomBell.src.services;
@@ -23,7 +23,7 @@ public class WebSocketHandler() : IDisposable
 
     public async Task Connect(string userId, string provider)
     {
-        Services.PluginLog.Info($"Connecting WS to backend for user {userId}...");
+        GameServices.PluginLog.Info($"Connecting WS to backend for user {userId}...");
 
         ws = new ClientWebSocket();
 
@@ -34,7 +34,7 @@ public class WebSocketHandler() : IDisposable
                 CancellationToken.None
             );
 
-            Services.PluginLog.Info("WebSocket connected successfully!");
+            GameServices.PluginLog.Info("WebSocket connected successfully!");
 
             var registerObj = new
             {
@@ -52,13 +52,13 @@ public class WebSocketHandler() : IDisposable
                 CancellationToken.None
             );
 
-            Services.PluginLog.Info($"Sent register message for {userId}");
+            GameServices.PluginLog.Info($"Sent register message for {userId}");
 
             _ = ReceiveLoop();
         }
         catch (Exception ex)
         {
-            Services.PluginLog.Error(ex, "WebSocket connection failed!");
+            GameServices.PluginLog.Error(ex, "WebSocket connection failed!");
         }
     }
 
@@ -81,18 +81,18 @@ public class WebSocketHandler() : IDisposable
                 }
                 catch (WebSocketException ex)
                 {
-                    Services.PluginLog.Warning($"WebSocket error: {ex.Message}");
+                    GameServices.PluginLog.Warning($"WebSocket error: {ex.Message}");
                     break;
                 }
                 catch (OperationCanceledException)
                 {
-                    Services.PluginLog.Info("WebSocket receive cancelled.");
+                    GameServices.PluginLog.Info("WebSocket receive cancelled.");
                     break;
                 }
 
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    Services.PluginLog.Info("WebSocket closed by server.");
+                    GameServices.PluginLog.Info("WebSocket closed by server.");
                     break;
                 }
 
@@ -111,7 +111,7 @@ public class WebSocketHandler() : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Services.PluginLog.Warning($"Failed to parse WS message: {ex.Message}");
+                    GameServices.PluginLog.Warning($"Failed to parse WS message: {ex.Message}");
                     continue;
                 }
 
@@ -123,11 +123,11 @@ public class WebSocketHandler() : IDisposable
         }
         catch (Exception ex)
         {
-            Services.PluginLog.Error(ex, "ReceiveLoop crashed unexpectedly.");
+            GameServices.PluginLog.Error(ex, "ReceiveLoop crashed unexpectedly.");
         }
         finally
         {
-            Services.PluginLog.Info("WebSocket receive loop ended.");
+            GameServices.PluginLog.Info("WebSocket receive loop ended.");
         }
     }
 
@@ -136,12 +136,12 @@ public class WebSocketHandler() : IDisposable
         if (message.Type != "authComplete")
             return;
 
-        Services.PluginLog.Info($"{message.Provider.FirstCharToUpper()} auth complete for user {message.UserId}");
+        GameServices.PluginLog.Info($"{message.Provider.FirstCharToUpper()} auth complete for user {message.UserId}");
         OnAuthCompleted?.Invoke(message.Provider);
 
         if (ws?.State == WebSocketState.Open)
         {
-            Services.PluginLog.Info("Closing WebSocket connection...");
+            GameServices.PluginLog.Info("Closing WebSocket connection...");
 
             await ws.CloseAsync(
                 WebSocketCloseStatus.NormalClosure,

@@ -1,9 +1,9 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Plugin;
 
-namespace BloomBell.src.config;
+namespace BloomBell.src.Configuration;
 
-public class Configuration : IPluginConfiguration
+public class PluginConfiguration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 

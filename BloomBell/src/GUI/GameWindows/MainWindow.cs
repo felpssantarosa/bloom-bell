@@ -3,12 +3,10 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using BloomBell.src.integrations.discord;
 using BloomBell.src.lib.game.partylist;
 using BloomBell.src.lib.infra;
-using System.Threading.Tasks;
 
-namespace BloomBell.src.gui.windows;
+namespace BloomBell.src.GUI.GameWindows;
 
 public class MainWindow : Window, IDisposable
 {

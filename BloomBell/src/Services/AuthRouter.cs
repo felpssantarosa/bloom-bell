@@ -1,17 +1,17 @@
 using System;
 using System.Threading.Tasks;
-using BloomBell.src.config;
+using BloomBell.src.Configuration;
 using BloomBell.src.integrations.discord;
-using BloomBell.src.lib.infra;
+using BloomBell.src.Library.External.Services;
 using BloomBell.src.services;
 
 public class AuthRouter : IDisposable
 {
-    private readonly Configuration configuration;
+    private readonly PluginConfiguration configuration;
     private readonly WebSocketHandler webSocketHandler;
     private readonly DiscordOAuth discordOAuth;
 
-    public AuthRouter(Configuration configuration, WebSocketHandler webSocketHandler)
+    public AuthRouter(PluginConfiguration configuration, WebSocketHandler webSocketHandler)
     {
         this.configuration = configuration;
         this.webSocketHandler = webSocketHandler;
@@ -26,15 +26,15 @@ public class AuthRouter : IDisposable
 
     public async Task Authenticate(string provider)
     {
-        var contentId = Services.PlayerState.ContentId;
+        var contentId = GameServices.PlayerState.ContentId;
 
         if (contentId == 0)
         {
-            Services.PluginLog.Warning("Cannot authenticate: player not fully logged in.");
+            GameServices.PluginLog.Warning("Cannot authenticate: player not fully logged in.");
             return;
         }
 
-        Services.PluginLog.Info($"Starting authentication for: {provider}");
+        GameServices.PluginLog.Info($"Starting authentication for: {provider}");
 
         switch (provider.ToLower())
         {
@@ -43,14 +43,14 @@ public class AuthRouter : IDisposable
                 break;
 
             default:
-                Services.PluginLog.Warning($"Unknown provider: {provider}");
+                GameServices.PluginLog.Warning($"Unknown provider: {provider}");
                 break;
         }
     }
 
     public void HandleAuthCompleted(string provider)
     {
-        Services.PluginLog.Info($"Auth completed for: {provider}");
+        GameServices.PluginLog.Info($"Auth completed for: {provider}");
 
         switch (provider.ToLower())
         {
@@ -59,7 +59,7 @@ public class AuthRouter : IDisposable
                 break;
 
             default:
-                Services.PluginLog.Warning($"Unknown provider: {provider}");
+                GameServices.PluginLog.Warning($"Unknown provider: {provider}");
                 break;
         }
     }

@@ -1,18 +1,17 @@
 using System;
-using System.Threading.Tasks;
-using BloomBell.src.config;
 using BloomBell.src.lib.infra;
 using BloomBell.src.services;
 using Dalamud.Utility;
+using BloomBell.src.Configuration;
 
 namespace BloomBell.src.integrations.discord;
 
-public class DiscordOAuth(Configuration configuration, WebSocketHandler webSocketHandler) : IOAuthProvider, IDisposable
+public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler webSocketHandler) : IOAuthProvider, IDisposable
 {
     private const string ClientId = "1476010311449448530";
     private readonly string provider = "discord";
 
-    private readonly Configuration configuration = configuration;
+    private readonly PluginConfiguration configuration = configuration;
     private readonly WebSocketHandler webSocketHandler = webSocketHandler;
 
 

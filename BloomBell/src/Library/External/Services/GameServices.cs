@@ -6,9 +6,9 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
-namespace BloomBell.src.lib.infra;
+namespace BloomBell.src.Library.External.Services;
 
-public class Services
+public class GameServices
 {
     [PluginService] public static IUnlockState UnlockState { get; private set; } = null!;
     [PluginService] public static IToastGui ToastGui { get; private set; } = null!;
@@ -55,7 +55,7 @@ public class Services
     [PluginService] public static IAddonEventManager AddonEventManager { get; private set; } = null!;
 
     private static int Initialized = 0;
-    internal static Services Instance { get; private set; } = null!;
+    internal static GameServices Instance { get; private set; } = null!;
 
     public static void Initialize(IDalamudPluginInterface pluginInterface)
     {

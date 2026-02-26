@@ -2,8 +2,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using BloomBell.src.config;
 using System;
+using BloomBell.src.Configuration;
 
 namespace BloomBell.src.services;
 

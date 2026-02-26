@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using BloomBell.src.lib.infra;
+using BloomBell.src.Library.External.Services;
 
-namespace BloomBell.src.lib.game.partylist;
+namespace BloomBell.src.Library.External.Game.PartyList;
 
 public class PartyListProvider : IDisposable
 {
@@ -22,12 +22,12 @@ public class PartyListProvider : IDisposable
 
     public PartyListProvider()
     {
-        Services.Framework.Update += onUpdate;
+        GameServices.Framework.Update += onUpdate;
     }
 
     public void Dispose()
     {
-        Services.Framework?.Update -= onUpdate;
+        GameServices.Framework?.Update -= onUpdate;
         buffers[0]?.Clear();
         buffers[1]?.Clear();
     }
@@ -36,11 +36,11 @@ public class PartyListProvider : IDisposable
     private Dictionary<long, PartyListMemberInfo> previous => buffers[1 - bufferIndex];
 
     public bool IsCrossWorld => InfoProxyCrossRealm.IsCrossRealmParty();
-    public bool IsAliance => IsCrossWorld ? InfoProxyCrossRealm.IsAllianceRaid() : Services.PartyList.IsAlliance;
+    public bool IsAliance => IsCrossWorld ? InfoProxyCrossRealm.IsAllianceRaid() : GameServices.PartyList.IsAlliance;
 
     public Dictionary<long, PartyListMemberInfo> GetPartyMembers()
     {
-        if (Services.PlayerState.ContentId == 0) return [];
+        if (GameServices.PlayerState.ContentId == 0) return [];
 
         Dictionary<long, PartyListMemberInfo> buffer = new(current.Count);
 
@@ -59,7 +59,7 @@ public class PartyListProvider : IDisposable
 
             ticksCount = 0;
 
-            if (Services.PlayerState.ContentId == 0) return;
+            if (GameServices.PlayerState.ContentId == 0) return;
 
             bufferIndex = 1 - bufferIndex;
 
@@ -76,7 +76,7 @@ public class PartyListProvider : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    Services.PluginLog.Error(exception, "Unexpected Exception");
+                    GameServices.PluginLog.Error(exception, "Unexpected Exception");
                 }
             }
 
@@ -90,13 +90,13 @@ public class PartyListProvider : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    Services.PluginLog.Error(exception, "Unexpected Exception");
+                    GameServices.PluginLog.Error(exception, "Unexpected Exception");
                 }
             }
         }
         catch (Exception exception)
         {
-            Services.PluginLog.Error(exception, "Unexpected Exception");
+            GameServices.PluginLog.Error(exception, "Unexpected Exception");
             Dispose();
         }
     }
@@ -105,7 +105,7 @@ public class PartyListProvider : IDisposable
     {
         if (!IsCrossWorld)
         {
-            foreach (var member in Services.PartyList)
+            foreach (var member in GameServices.PartyList)
             {
                 if (member.ContentId == 0) continue;
                 buffer[member.ContentId] = new()
@@ -159,7 +159,7 @@ public class PartyListProvider : IDisposable
     {
         if (!InfoProxyCrossRealm.IsCrossRealmParty())
         {
-            return Services.PartyList.Count;
+            return GameServices.PartyList.Count;
         }
 
         var infoProxyCrossRealmInstance = InfoProxyCrossRealm.Instance();

@@ -1,4 +1,4 @@
-namespace BloomBell.src.lib.game.partylist;
+namespace BloomBell.src.Library.External.Game.PartyList;
 
 public readonly struct PartyListMemberInfo
 {
