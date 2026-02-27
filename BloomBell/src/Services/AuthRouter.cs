@@ -24,7 +24,7 @@ public class AuthRouter : IDisposable
         discordOAuth.Dispose();
     }
 
-    public async Task Authenticate(string provider)
+    public async Task AuthenticateWith(string provider)
     {
         var contentId = GameServices.PlayerState.ContentId;
 

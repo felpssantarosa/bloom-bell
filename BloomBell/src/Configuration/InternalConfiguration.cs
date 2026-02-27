@@ -7,4 +7,5 @@ public static class InternalConfiguration
     public static string OAuthLoginUrl = $"{baseServerHttpUri}/login";
     public static string NotificationUrl = $"{baseServerHttpUri}/notify";
     public static string CallbackUrl = $"{baseServerHttpUri}/callback";
+    public static string PlatformsUrl = $"{baseServerHttpUri}/platforms";
 }
