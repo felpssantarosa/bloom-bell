@@ -44,7 +44,9 @@ public class PartyNotifier(PluginConfiguration pluginConfiguration) : IDisposabl
         {
             alreadyNotified = true;
 
-            // if (Dalamud.Utility.Util.ApplicationIsActivated()) return;
+            if (pluginConfiguration.pauseNotifications) return;
+
+            if (!pluginConfiguration.notifyWhenFocused && Dalamud.Utility.Util.ApplicationIsActivated()) return;
 
             var payload = new
             {

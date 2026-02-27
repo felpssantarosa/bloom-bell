@@ -79,6 +79,22 @@ public class MainWindow : Window, IDisposable
                 plugin.PluginConfiguration.maxPartySize = (byte)maxInt;
                 plugin.PluginConfiguration.Save(plugin.pluginInterface);
             }
+
+            var pause = plugin.PluginConfiguration.pauseNotifications;
+
+            if (ImGui.Checkbox("Pause notifications", ref pause))
+            {
+                plugin.PluginConfiguration.pauseNotifications = pause;
+                plugin.PluginConfiguration.Save(plugin.pluginInterface);
+            }
+
+            var notifyFocused = plugin.PluginConfiguration.notifyWhenFocused;
+
+            if (ImGui.Checkbox("Notify when window is focused", ref notifyFocused))
+            {
+                plugin.PluginConfiguration.notifyWhenFocused = notifyFocused;
+                plugin.PluginConfiguration.Save(plugin.pluginInterface);
+            }
         }
     }
     private async Task FetchPlatformStatusAsync()

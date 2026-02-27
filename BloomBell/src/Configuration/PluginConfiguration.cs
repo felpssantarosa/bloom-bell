@@ -12,6 +12,8 @@ public class PluginConfiguration : IPluginConfiguration
     public bool DiscordLinked = false;
 
     public byte maxPartySize = 8;
+    public bool pauseNotifications = false;
+    public bool notifyWhenFocused = false;
 
     public void Save(IDalamudPluginInterface pluginInterface)
     {
