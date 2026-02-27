@@ -81,10 +81,14 @@ public class MainWindow : Window, IDisposable
             ImGui.SameLine();
         }
 
+        var iconSize = 64f;
+        var lineHeight = ImGui.GetTextLineHeightWithSpacing();
+        var groupHeight = lineHeight * 2;
+        var offsetY = (iconSize - groupHeight) * 0.5f;
+        if (offsetY > 0) ImGui.SetCursorPosY(ImGui.GetCursorPosY() + offsetY);
+
         ImGui.BeginGroup();
-        ImGui.SetWindowFontScale(1.4f);
         ImGui.Text("Bloom Bell");
-        ImGui.SetWindowFontScale(1.0f);
 
         // Highlighted party member count
         var partySize = partyList.GetPartySize();
