@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BloomBell.src.Library.External.Game.PartyList;
 using BloomBell.src.Library.External.Services;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 
@@ -16,24 +17,67 @@ public class MainWindow : Window, IDisposable
 
     private bool isFetchingPlatforms = false;
     private bool hasFetchedPlatforms = false;
-
     private bool canTrustConfiguration = false;
     private NotificationPlatforms? connectedPlatforms;
+
+    private enum MainTab { Integrations, Party }
 
     public MainWindow(Plugin plugin) : base($"{plugin.pluginInterface.Manifest.Name}##Main")
     {
         this.plugin = plugin;
         partyList = plugin.partyListProvider;
 
-        Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-        SizeConstraints = new() { MinimumSize = new(375, 330) };
+        Size = new Vector2(400, 300);
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(1, 1),
+        };
+
+        Flags = ImGuiWindowFlags.None;
     }
 
     public void Dispose() { }
 
     public override void Draw()
     {
+        using var font = ImRaii.PushFont(UiBuilder.DefaultFont);
+        ImGui.TextWrapped("Welcome to Bloom Bell! Use the tabs below to configure your settings and integrations.");
+
+        ImGui.Spacing();
+
+        ImGui.Text($"Party members: {partyList.GetPartySize()}");
+
+        ImGui.Spacing();
+
+        if (ImGui.BeginTabBar("MainTabs", ImGuiTabBarFlags.None))
+        {
+            if (ImGui.BeginTabItem("Integrations"))
+            {
+                DrawDiscordSection();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Party Settings"))
+            {
+                DrawPartySettings();
+                ImGui.EndTabItem();
+            }
+
+            ImGui.EndTabBar();
+        }
+    }
+
+    private void DrawDiscordSection()
+    {
+        ImGui.Dummy(new Vector2(0, 5));
+
+        ImGui.Spacing();
+
+        ImGui.Indent(10);
+
         ImGui.Text("Discord Integration");
+        ImGui.Separator();
+        ImGui.Spacing();
 
         if (!hasFetchedPlatforms && !isFetchingPlatforms)
         {
@@ -44,6 +88,8 @@ public class MainWindow : Window, IDisposable
         if (isFetchingPlatforms)
         {
             ImGui.Text("Checking Discord connection...");
+            ImGui.SameLine();
+            ImGui.ProgressBar((float)(Math.Sin(ImGui.GetTime() * 3) * 0.5 + 0.5), new Vector2(120, 0));
         }
         else if (connectedPlatforms?.Discord == true || (plugin.PluginConfiguration.DiscordLinked && canTrustConfiguration))
         {
@@ -53,50 +99,64 @@ public class MainWindow : Window, IDisposable
         else
         {
             ImGui.TextWrapped("Connect your Discord account to receive DM notifications.");
-
             if (ImGui.Button("Connect Discord") && !isFetchingPlatforms)
             {
                 isFetchingPlatforms = true;
                 _ = AuthenticateDiscordAsync();
             }
         }
+    }
+
+    private void DrawPartySettings()
+    {
+        ImGui.Dummy(new Vector2(0, 5));
 
         ImGui.Spacing();
 
-        using var child = ImRaii.Child("Scrollbar", Vector2.Zero, true);
-        if (child.Success)
+        ImGui.Indent(10);
+
+        if (ImGui.BeginTable("PartyTable", 2, ImGuiTableFlags.SizingStretchProp))
         {
-            var totalPartyMembers = partyList.GetPartySize();
-            ImGui.Text($"Party members: {totalPartyMembers}");
-
-            var currentMax = plugin.PluginConfiguration.maxPartySize;
-            int maxInt = currentMax;
-            if (ImGui.InputInt("Max party size", ref maxInt))
+            ImGui.TableNextColumn();
+            ImGui.Text("Max party size");
+            ImGui.TableNextColumn();
+            int maxInt = plugin.PluginConfiguration.maxPartySize;
+            ImGui.PushItemWidth(44);
+            if (ImGui.InputInt("##MaxPartySize", ref maxInt))
             {
-                if (maxInt < 1) maxInt = 1;
-                if (maxInt > 255) maxInt = 255;
-
+                maxInt = Math.Clamp(maxInt, 1, 9);
                 plugin.PluginConfiguration.maxPartySize = (byte)maxInt;
                 plugin.PluginConfiguration.Save(plugin.pluginInterface);
             }
+            ImGui.PopItemWidth();
 
-            var pause = plugin.PluginConfiguration.pauseNotifications;
-
-            if (ImGui.Checkbox("Pause notifications", ref pause))
+            ImGui.TableNextColumn();
+            ImGui.Text("Pause notifications");
+            ImGui.TableNextColumn();
+            bool pause = plugin.PluginConfiguration.pauseNotifications;
+            if (ImGui.Checkbox("##PauseNotifications", ref pause))
             {
                 plugin.PluginConfiguration.pauseNotifications = pause;
                 plugin.PluginConfiguration.Save(plugin.pluginInterface);
             }
 
-            var notifyFocused = plugin.PluginConfiguration.notifyWhenFocused;
-
-            if (ImGui.Checkbox("Notify when window is focused", ref notifyFocused))
+            ImGui.TableNextColumn();
+            ImGui.Text("Notify when focused");
+            ImGui.TableNextColumn();
+            bool notifyFocused = plugin.PluginConfiguration.notifyWhenFocused;
+            if (ImGui.Checkbox("##NotifyFocused", ref notifyFocused))
             {
                 plugin.PluginConfiguration.notifyWhenFocused = notifyFocused;
                 plugin.PluginConfiguration.Save(plugin.pluginInterface);
             }
+
+            ImGui.EndTable();
         }
+
+        ImGui.Unindent(10);
+        ImGui.Dummy(new Vector2(0, 5));
     }
+
     private async Task FetchPlatformStatusAsync()
     {
         try
@@ -134,7 +194,6 @@ public class MainWindow : Window, IDisposable
     public override void OnClose()
     {
         base.OnClose();
-
         isFetchingPlatforms = false;
         hasFetchedPlatforms = false;
         canTrustConfiguration = false;
