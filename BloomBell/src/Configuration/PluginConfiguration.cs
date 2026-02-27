@@ -11,6 +11,8 @@ public class PluginConfiguration : IPluginConfiguration
 
     public bool DiscordLinked = false;
 
+    public byte maxPartySize = 8;
+
     public void Save(IDalamudPluginInterface pluginInterface)
     {
         pluginInterface.SavePluginConfig(this);

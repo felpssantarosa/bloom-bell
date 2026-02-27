@@ -7,7 +7,7 @@ using BloomBell.src.Configuration;
 
 namespace BloomBell.src.services;
 
-public class PartyNotifier() : IDisposable
+public class PartyNotifier(PluginConfiguration pluginConfiguration) : IDisposable
 {
     private readonly HttpClient httpClient = new();
     private int lastPartySize = -1;
@@ -16,6 +16,8 @@ public class PartyNotifier() : IDisposable
 
     public async Task UpdateAsync(int currentPartySize, ulong contentId, bool isCrossWorld)
     {
+        var maxSize = pluginConfiguration.maxPartySize;
+
         if (isCrossWorld != lastIsCrossWorld)
         {
             lastPartySize = -1;
@@ -25,12 +27,7 @@ public class PartyNotifier() : IDisposable
 
         if (currentPartySize == lastPartySize) return;
 
-        var maxSize = 8;
-
-        if (currentPartySize < maxSize)
-        {
-            alreadyNotified = false;
-        }
+        if (currentPartySize < maxSize) alreadyNotified = false;
 
         if (currentPartySize == maxSize && !alreadyNotified)
         {

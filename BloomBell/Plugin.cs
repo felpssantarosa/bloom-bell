@@ -23,7 +23,7 @@ public sealed class Plugin : IDalamudPlugin
 
     internal readonly WindowSystem WindowSystem;
     internal readonly MainWindow MainWindow;
-    internal readonly PluginConfiguration Configuration;
+    internal readonly PluginConfiguration PluginConfiguration;
 
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
@@ -32,12 +32,12 @@ public sealed class Plugin : IDalamudPlugin
             this.pluginInterface = pluginInterface;
 
             GameServices.Initialize(pluginInterface);
-            Configuration = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
+            PluginConfiguration = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
 
             partyListProvider = new PartyListProvider();
-            partyNotifier = new PartyNotifier();
+            partyNotifier = new PartyNotifier(PluginConfiguration);
             webSocketHandler = new WebSocketHandler();
-            authRouter = new AuthRouter(Configuration, webSocketHandler);
+            authRouter = new AuthRouter(PluginConfiguration, webSocketHandler);
 
             webSocketHandler.OnAuthCompleted += authRouter.HandleAuthCompleted;
             partyListProvider.OnEvent += OnPartyChanged;

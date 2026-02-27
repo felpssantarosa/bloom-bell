@@ -45,9 +45,9 @@ public class MainWindow : Window, IDisposable
         {
             ImGui.Text("Checking Discord connection...");
         }
-        else if (connectedPlatforms?.Discord == true || (plugin.Configuration.DiscordLinked && canTrustConfiguration))
+        else if (connectedPlatforms?.Discord == true || (plugin.PluginConfiguration.DiscordLinked && canTrustConfiguration))
         {
-            plugin.Configuration.DiscordLinked = true;
+            plugin.PluginConfiguration.DiscordLinked = true;
             ImGui.TextColored(new Vector4(0, 1, 0, 1), "Discord account linked!");
         }
         else
