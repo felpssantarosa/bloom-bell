@@ -12,7 +12,7 @@ public class ConnectedPlatforms
     {
         try
         {
-            var response = await Client.GetAsync(InternalConfiguration.PlatformsUrl);
+            var response = await Client.GetAsync($"{InternalConfiguration.PlatformsUrl}?userId={GameServices.PlayerState.ContentId}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -20,9 +20,9 @@ public class ConnectedPlatforms
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            var platforms = JsonSerializer.Deserialize<NotificationPlatforms>(content);
+            var platforms = JsonSerializer.Deserialize<ConnectedPlatformsResponse>(content);
 
-            return platforms ?? new NotificationPlatforms();
+            return platforms?.Platforms ?? new NotificationPlatforms();
         }
         catch (HttpRequestException ex)
         {
