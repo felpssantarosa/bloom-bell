@@ -12,6 +12,9 @@ This plugin was made as an intent to solve a problem that players may have when 
 # 🪀 Features
 
 - Discord integration to send you a message when your party is ready.
+- Customizable party size threshold for notifications.
+- Option to pause notifications when you don't want to be disturbed.
+- Option to disable notifications when the game is focused.
 
 # 📖 How to use
 
@@ -49,7 +52,7 @@ https://raw.githubusercontent.com/felpssantarosa/bloom-bell/refs/heads/master/re
 
 ```bash
 git clone https://github.com/felpssantarosa/bloom-bell.git
-````
+```
 
 2. Build the plugin using your preferred IDE (Visual Studio, Rider, etc.) or using the command line
 
