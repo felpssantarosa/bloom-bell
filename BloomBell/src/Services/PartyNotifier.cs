@@ -10,13 +10,23 @@ namespace BloomBell.src.services;
 public class PartyNotifier(PluginConfiguration pluginConfiguration) : IDisposable
 {
     private readonly HttpClient httpClient = new();
-    private int lastPartySize = -1;
+    private bool isInitialized = false;
+    private int lastPartySize = 0;
     private bool alreadyNotified = false;
     private bool lastIsCrossWorld = false;
 
     public async Task UpdateAsync(int currentPartySize, ulong contentId, bool isCrossWorld)
     {
         var maxSize = pluginConfiguration.maxPartySize;
+
+        if (!isInitialized)
+        {
+            isInitialized = true;
+            lastPartySize = currentPartySize;
+            lastIsCrossWorld = isCrossWorld;
+            alreadyNotified = currentPartySize == maxSize;
+            return;
+        }
 
         if (isCrossWorld != lastIsCrossWorld)
         {
