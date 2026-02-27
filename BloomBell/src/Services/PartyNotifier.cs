@@ -20,9 +20,10 @@ public class PartyNotifier(PluginConfiguration pluginConfiguration) : IDisposabl
 
         if (isCrossWorld != lastIsCrossWorld)
         {
-            lastPartySize = -1;
-            alreadyNotified = false;
             lastIsCrossWorld = isCrossWorld;
+            lastPartySize = currentPartySize;
+            alreadyNotified = currentPartySize == maxSize;
+            return;
         }
 
         if (currentPartySize == lastPartySize) return;
@@ -33,7 +34,7 @@ public class PartyNotifier(PluginConfiguration pluginConfiguration) : IDisposabl
         {
             alreadyNotified = true;
 
-            if (Dalamud.Utility.Util.ApplicationIsActivated()) return;
+            // if (Dalamud.Utility.Util.ApplicationIsActivated()) return;
 
             var payload = new
             {
