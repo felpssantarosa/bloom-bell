@@ -77,13 +77,21 @@ public class MainWindow : Window, IDisposable
         var wrap = iconTexture.GetWrapOrDefault();
         if (wrap != null)
         {
-            ImGui.Image(wrap.Handle, new Vector2(36, 36));
+            ImGui.Image(wrap.Handle, new Vector2(48, 48));
             ImGui.SameLine();
         }
 
         ImGui.BeginGroup();
+        ImGui.SetWindowFontScale(1.4f);
         ImGui.Text("Bloom Bell");
-        ImGui.TextColored(MutedTextColor, $"Party members: {partyList.GetPartySize()}");
+        ImGui.SetWindowFontScale(1.0f);
+
+        // Highlighted party member count
+        var partySize = partyList.GetPartySize();
+        var badgeColor = partySize > 0 ? AccentColor : MutedTextColor;
+        ImGui.TextColored(badgeColor, $"\u25CF {partySize}");
+        ImGui.SameLine();
+        ImGui.TextColored(MutedTextColor, partySize == 1 ? "party member" : "party members");
         ImGui.EndGroup();
 
         ImGui.Separator();
@@ -133,11 +141,14 @@ public class MainWindow : Window, IDisposable
 
         DrawSectionHeader("Notification Trigger");
 
-        // Max party size — slider stands out from checkboxes
-        var availWidth = ImGui.GetContentRegionAvail().X;
+        // Max party size — label left, slider right
         int maxInt = plugin.PluginConfiguration.maxPartySize;
 
-        if (ImGui.SliderInt("Max party size", ref maxInt, 1, 8))
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Max party size");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+        if (ImGui.SliderInt("##MaxPartySize", ref maxInt, 1, 8))
         {
             plugin.PluginConfiguration.maxPartySize = (byte)maxInt;
             plugin.PluginConfiguration.Save(plugin.pluginInterface);
