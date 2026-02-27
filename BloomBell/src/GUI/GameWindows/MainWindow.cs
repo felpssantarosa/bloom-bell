@@ -68,6 +68,17 @@ public class MainWindow : Window, IDisposable
         {
             var totalPartyMembers = partyList.GetPartySize();
             ImGui.Text($"Party members: {totalPartyMembers}");
+
+            var currentMax = plugin.PluginConfiguration.maxPartySize;
+            int maxInt = currentMax;
+            if (ImGui.InputInt("Max party size", ref maxInt))
+            {
+                if (maxInt < 1) maxInt = 1;
+                if (maxInt > 255) maxInt = 255;
+
+                plugin.PluginConfiguration.maxPartySize = (byte)maxInt;
+                plugin.PluginConfiguration.Save(plugin.pluginInterface);
+            }
         }
     }
     private async Task FetchPlatformStatusAsync()
