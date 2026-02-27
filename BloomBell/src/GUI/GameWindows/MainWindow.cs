@@ -103,4 +103,13 @@ public class MainWindow : Window, IDisposable
             isFetchingPlatforms = false;
         }
     }
+
+    public override void OnClose()
+    {
+        base.OnClose();
+
+        isFetchingPlatforms = false;
+        hasFetchedPlatforms = false;
+        canTrustConfiguration = false;
+    }
 }
