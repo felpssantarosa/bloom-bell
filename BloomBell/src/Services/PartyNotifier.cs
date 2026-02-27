@@ -36,6 +36,8 @@ public class PartyNotifier() : IDisposable
         {
             alreadyNotified = true;
 
+            if (Dalamud.Utility.Util.ApplicationIsActivated()) return;
+
             var payload = new
             {
                 pluginUserId = contentId.ToString(),
