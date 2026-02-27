@@ -1,31 +1,50 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using BloomBell.src.Application.Services;
+using BloomBell.src.Domain.Events;
+using BloomBell.src.Domain.Ports;
+using BloomBell.src.Infrastructure.Configuration;
+using BloomBell.src.Infrastructure.Discord;
+using BloomBell.src.Infrastructure.Game;
+using BloomBell.src.Infrastructure.Game.PartyList;
+using BloomBell.src.Infrastructure.Network;
+using BloomBell.src.Presentation.Components;
+using BloomBell.src.Presentation.Windows;
 using Dalamud.Game.Command;
-using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
-using BloomBell.src.services;
-using System;
-using BloomBell.src.Events;
-using BloomBell.src.Library.External.Game.PartyList;
-using BloomBell.src.GUI.GameWindows;
-using BloomBell.src.Configuration;
-using BloomBell.src.Library.External.Services;
+using Dalamud.Plugin;
 
 namespace BloomBell;
 
+/// <summary>
+/// Composition root. Wires all layers together — Domain, Application,
+/// Infrastructure, and Presentation — then hands control to Dalamud.
+/// Contains no business logic.
+/// </summary>
 public sealed class Plugin : IDalamudPlugin
 {
     private const string CommandName = "/bb";
 
-    internal readonly IDalamudPluginInterface pluginInterface;
-    internal readonly PartyListProvider partyListProvider;
-    internal readonly PartyNotifier partyNotifier;
-    internal readonly WebSocketHandler webSocketHandler;
-    internal readonly AuthRouter authRouter;
-    internal readonly EventBus eventBus;
+    private readonly IDalamudPluginInterface pluginInterface;
 
-    internal readonly WindowSystem WindowSystem;
-    internal readonly MainWindow MainWindow;
-    internal readonly PluginConfiguration PluginConfiguration;
+    // Domain
+    private readonly EventBus eventBus;
+
+    // Infrastructure
+    private readonly WebSocketClient webSocketClient;
+    private readonly HttpPlatformClient httpPlatformClient;
+    private readonly PartyListProvider partyListProvider;
+
+    // Application
+    private readonly AuthService authService;
+    private readonly PlatformService platformService;
+    private readonly PartyNotifier partyNotifier;
+
+    // Presentation
+    private readonly WindowSystem windowSystem;
+    private readonly MainWindow mainWindow;
 
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
@@ -34,28 +53,54 @@ public sealed class Plugin : IDalamudPlugin
             this.pluginInterface = pluginInterface;
 
             GameServices.Initialize(pluginInterface);
-            PluginConfiguration = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
+            var config = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
 
+            // --- Domain ---
             eventBus = new EventBus();
+
+            // --- Infrastructure ---
+            webSocketClient = new WebSocketClient();
+            httpPlatformClient = new HttpPlatformClient();
             partyListProvider = new PartyListProvider();
-            partyNotifier = new PartyNotifier(PluginConfiguration);
-            webSocketHandler = new WebSocketHandler();
-            authRouter = new AuthRouter(PluginConfiguration, webSocketHandler, eventBus);
 
-            webSocketHandler.OnAuthCompleted += authRouter.HandleAuthCompleted;
+            var discordOAuth = new DiscordOAuthProvider(webSocketClient);
+            var providers = new Dictionary<string, IOAuthProvider>
+            {
+                ["discord"] = discordOAuth,
+            };
+
+            // --- Application ---
+            authService = new AuthService(config, webSocketClient, eventBus, providers);
+            platformService = new PlatformService(httpPlatformClient, config, pluginInterface);
+            partyNotifier = new PartyNotifier(config);
+
+            // --- Presentation ---
+            var iconPath = Path.Combine(pluginInterface.AssemblyLocation.DirectoryName!, "images", "icon.png");
+            var iconTexture = GameServices.TextureProvider.GetFromFile(iconPath);
+
+            var headerComponent = new HeaderComponent(partyListProvider, iconTexture);
+            var integrationsTab = new IntegrationsTab(authService, platformService, eventBus);
+            var partyTab = new PartyTab(config, pluginInterface);
+
+            mainWindow = new MainWindow(
+                pluginInterface.Manifest.Name,
+                headerComponent,
+                integrationsTab,
+                partyTab
+            );
+
+            windowSystem = new WindowSystem(pluginInterface.Manifest.InternalName);
+            windowSystem.AddWindow(mainWindow);
+
+            // --- Hooks ---
             partyListProvider.OnEvent += OnPartyChanged;
-
-            WindowSystem = new(pluginInterface.Manifest.InternalName);
-
-            MainWindow = new MainWindow(this, eventBus);
-            WindowSystem.AddWindow(MainWindow);
 
             GameServices.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "Use /bb to toggle the main window."
             });
 
-            pluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+            pluginInterface.UiBuilder.Draw += windowSystem.Draw;
             pluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
         }
         catch (Exception exception)
@@ -68,23 +113,23 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        pluginInterface?.UiBuilder.Draw -= WindowSystem.Draw;
+        pluginInterface?.UiBuilder.Draw -= windowSystem.Draw;
         pluginInterface?.UiBuilder.OpenMainUi -= ToggleMainUi;
         partyListProvider.OnEvent -= OnPartyChanged;
 
         GameServices.CommandManager.RemoveHandler(CommandName);
 
-        WindowSystem.RemoveAllWindows();
+        windowSystem?.RemoveAllWindows();
 
-        MainWindow.Dispose();
-        authRouter.Dispose();
-        webSocketHandler?.Dispose();
+        mainWindow?.Dispose();
+        authService?.Dispose();
+        webSocketClient?.Dispose();
         partyNotifier?.Dispose();
         partyListProvider?.Dispose();
         eventBus?.Dispose();
     }
 
-    public void ToggleMainUi() => MainWindow.Toggle();
+    private void ToggleMainUi() => mainWindow.Toggle();
 
     private void OnPartyChanged(bool status, PartyListMemberInfo member)
     {
@@ -104,6 +149,6 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        MainWindow.Toggle();
+        mainWindow.Toggle();
     }
 }
