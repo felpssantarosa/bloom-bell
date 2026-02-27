@@ -2,6 +2,7 @@
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
+using BloomBell.src.Events;
 using BloomBell.src.Library.External.Game.PartyList;
 using BloomBell.src.Library.External.Services;
 using Dalamud.Bindings.ImGui;
@@ -16,20 +17,22 @@ public class MainWindow : Window, IDisposable
 {
     private readonly PartyListProvider partyList;
     private readonly Plugin plugin;
+    private readonly EventBus eventBus;
     private readonly ISharedImmediateTexture iconTexture;
 
     private bool isFetchingPlatforms = false;
     private bool hasFetchedPlatforms = false;
-    private bool canTrustConfiguration = false;
+    private bool isAuthenticating = false;
     private NotificationPlatforms? connectedPlatforms;
     private static readonly Vector4 AccentColor = new(0.42f, 0.60f, 0.90f, 1.00f);
     private static readonly Vector4 SuccessColor = new(0.30f, 0.85f, 0.45f, 1.00f);
     private static readonly Vector4 MutedTextColor = new(0.70f, 0.70f, 0.70f, 1.00f);
     private static readonly Vector4 SectionBgColor = new(0.14f, 0.14f, 0.17f, 1.00f);
 
-    public MainWindow(Plugin plugin) : base($"{plugin.pluginInterface.Manifest.Name}##Main")
+    public MainWindow(Plugin plugin, EventBus eventBus) : base($"{plugin.pluginInterface.Manifest.Name}##Main")
     {
         this.plugin = plugin;
+        this.eventBus = eventBus;
         partyList = plugin.partyListProvider;
 
         var iconPath = Path.Combine(plugin.pluginInterface.AssemblyLocation.DirectoryName!, "images", "icon.png");
@@ -42,9 +45,39 @@ public class MainWindow : Window, IDisposable
         };
 
         Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+
+        eventBus.Subscribe<AuthStateChangedEvent>(OnAuthStateChanged);
     }
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+        eventBus.Unsubscribe<AuthStateChangedEvent>(OnAuthStateChanged);
+    }
+
+    private void ForceUIRefresh()
+    {
+        hasFetchedPlatforms = false;
+        isFetchingPlatforms = false;
+        isAuthenticating = false;
+    }
+
+    private void OnAuthStateChanged(AuthStateChangedEvent e)
+    {
+        switch (e.State)
+        {
+            case AuthState.Started:
+                isAuthenticating = true;
+                break;
+
+            case AuthState.Completed:
+                this.ForceUIRefresh();
+                break;
+
+            case AuthState.Failed:
+                isAuthenticating = false;
+                break;
+        }
+    }
 
     public override void Draw()
     {
@@ -105,19 +138,22 @@ public class MainWindow : Window, IDisposable
 
         DrawSectionHeader("Discord");
 
-        if (!hasFetchedPlatforms && !isFetchingPlatforms)
+        if (!hasFetchedPlatforms && !isFetchingPlatforms && !isAuthenticating)
         {
             isFetchingPlatforms = true;
             _ = FetchPlatformStatusAsync();
         }
 
-        if (isFetchingPlatforms)
+        if (isAuthenticating)
+        {
+            ImGui.TextColored(MutedTextColor, "Waiting for authentication...");
+        }
+        else if (isFetchingPlatforms)
         {
             ImGui.TextColored(MutedTextColor, "Checking connection...");
         }
-        else if (connectedPlatforms?.Discord == true || (plugin.PluginConfiguration.DiscordLinked && canTrustConfiguration))
+        else if (connectedPlatforms?.Discord == true)
         {
-            plugin.PluginConfiguration.DiscordLinked = true;
             ImGui.TextColored(SuccessColor, "\u2713 Discord account linked");
         }
         else
@@ -128,10 +164,9 @@ public class MainWindow : Window, IDisposable
             using (ImRaii.PushColor(ImGuiCol.Button, AccentColor))
             using (ImRaii.PushColor(ImGuiCol.ButtonHovered, AccentColor * new Vector4(1, 1, 1, 0.85f)))
             {
-                if (ImGui.SmallButton("Connect") && !isFetchingPlatforms)
+                if (ImGui.SmallButton("Connect") && !isAuthenticating)
                 {
-                    isFetchingPlatforms = true;
-                    _ = AuthenticateDiscordAsync();
+                    plugin.authRouter.AuthenticateWith("discord");
                 }
             }
         }
@@ -143,7 +178,6 @@ public class MainWindow : Window, IDisposable
 
         DrawSectionHeader("Notification Trigger");
 
-        // Max party size — label left, slider right
         int maxInt = plugin.PluginConfiguration.maxPartySize;
 
         ImGui.AlignTextToFramePadding();
@@ -186,6 +220,9 @@ public class MainWindow : Window, IDisposable
         try
         {
             connectedPlatforms = await ConnectedPlatforms.GetAllAsync();
+
+            plugin.PluginConfiguration.DiscordLinked = connectedPlatforms?.Discord ?? false;
+            plugin.PluginConfiguration.Save(plugin.pluginInterface);
         }
         catch (Exception ex)
         {
@@ -198,28 +235,11 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    private async Task AuthenticateDiscordAsync()
-    {
-        try
-        {
-            await plugin.authRouter.AuthenticateWith("discord");
-            canTrustConfiguration = true;
-        }
-        catch (Exception ex)
-        {
-            GameServices.PluginLog.Error(ex, "Discord authentication failed");
-        }
-        finally
-        {
-            isFetchingPlatforms = false;
-        }
-    }
-
     public override void OnClose()
     {
         base.OnClose();
         isFetchingPlatforms = false;
         hasFetchedPlatforms = false;
-        canTrustConfiguration = false;
+        isAuthenticating = false;
     }
 }

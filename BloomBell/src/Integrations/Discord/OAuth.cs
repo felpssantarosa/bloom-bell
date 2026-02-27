@@ -6,14 +6,12 @@ using BloomBell.src.Library.External.Services;
 
 namespace BloomBell.src.integrations.discord;
 
-public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler webSocketHandler) : IOAuthProvider, IDisposable
+public class DiscordOAuth(WebSocketHandler webSocketHandler) : IOAuthProvider, IDisposable
 {
     private const string ClientId = "1476010311449448530";
     private readonly string provider = "discord";
 
-    private readonly PluginConfiguration configuration = configuration;
     private readonly WebSocketHandler webSocketHandler = webSocketHandler;
-
 
     public void Dispose() { }
 
@@ -41,12 +39,5 @@ public class DiscordOAuth(PluginConfiguration configuration, WebSocketHandler we
         {
             GameServices.PluginLog.Error(ex, "Discord authentication crashed");
         }
-    }
-
-    public void AuthCompletedHandler(string provider)
-    {
-        GameServices.PluginLog.Info($"Auth completed for: {provider}");
-
-        configuration.DiscordLinked = true;
     }
 }

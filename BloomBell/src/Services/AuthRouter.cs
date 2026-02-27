@@ -1,6 +1,6 @@
 using System;
-using System.Threading.Tasks;
 using BloomBell.src.Configuration;
+using BloomBell.src.Events;
 using BloomBell.src.integrations.discord;
 using BloomBell.src.Library.External.Services;
 using BloomBell.src.services;
@@ -9,14 +9,16 @@ public class AuthRouter : IDisposable
 {
     private readonly PluginConfiguration configuration;
     private readonly WebSocketHandler webSocketHandler;
+    private readonly EventBus eventBus;
     private readonly DiscordOAuth discordOAuth;
 
-    public AuthRouter(PluginConfiguration configuration, WebSocketHandler webSocketHandler)
+    public AuthRouter(PluginConfiguration configuration, WebSocketHandler webSocketHandler, EventBus eventBus)
     {
         this.configuration = configuration;
         this.webSocketHandler = webSocketHandler;
+        this.eventBus = eventBus;
 
-        discordOAuth = new DiscordOAuth(this.configuration, this.webSocketHandler);
+        discordOAuth = new DiscordOAuth(this.webSocketHandler);
     }
 
     public void Dispose()
@@ -24,7 +26,7 @@ public class AuthRouter : IDisposable
         discordOAuth.Dispose();
     }
 
-    public async Task AuthenticateWith(string provider)
+    public void AuthenticateWith(string provider)
     {
         var contentId = GameServices.PlayerState.ContentId;
 
@@ -35,6 +37,7 @@ public class AuthRouter : IDisposable
         }
 
         GameServices.PluginLog.Info($"Starting authentication for: {provider}");
+        eventBus.Publish(new AuthStateChangedEvent(provider, AuthState.Started));
 
         switch (provider.ToLower())
         {
@@ -62,5 +65,7 @@ public class AuthRouter : IDisposable
                 GameServices.PluginLog.Warning($"Unknown provider: {provider}");
                 break;
         }
+
+        eventBus.Publish(new AuthStateChangedEvent(provider, AuthState.Completed));
     }
 }

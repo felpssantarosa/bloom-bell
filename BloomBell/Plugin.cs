@@ -4,6 +4,7 @@ using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using BloomBell.src.services;
 using System;
+using BloomBell.src.Events;
 using BloomBell.src.Library.External.Game.PartyList;
 using BloomBell.src.GUI.GameWindows;
 using BloomBell.src.Configuration;
@@ -20,6 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     internal readonly PartyNotifier partyNotifier;
     internal readonly WebSocketHandler webSocketHandler;
     internal readonly AuthRouter authRouter;
+    internal readonly EventBus eventBus;
 
     internal readonly WindowSystem WindowSystem;
     internal readonly MainWindow MainWindow;
@@ -34,17 +36,18 @@ public sealed class Plugin : IDalamudPlugin
             GameServices.Initialize(pluginInterface);
             PluginConfiguration = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
 
+            eventBus = new EventBus();
             partyListProvider = new PartyListProvider();
             partyNotifier = new PartyNotifier(PluginConfiguration);
             webSocketHandler = new WebSocketHandler();
-            authRouter = new AuthRouter(PluginConfiguration, webSocketHandler);
+            authRouter = new AuthRouter(PluginConfiguration, webSocketHandler, eventBus);
 
             webSocketHandler.OnAuthCompleted += authRouter.HandleAuthCompleted;
             partyListProvider.OnEvent += OnPartyChanged;
 
             WindowSystem = new(pluginInterface.Manifest.InternalName);
 
-            MainWindow = new MainWindow(this);
+            MainWindow = new MainWindow(this, eventBus);
             WindowSystem.AddWindow(MainWindow);
 
             GameServices.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
@@ -78,6 +81,7 @@ public sealed class Plugin : IDalamudPlugin
         webSocketHandler?.Dispose();
         partyNotifier?.Dispose();
         partyListProvider?.Dispose();
+        eventBus?.Dispose();
     }
 
     public void ToggleMainUi() => MainWindow.Toggle();
