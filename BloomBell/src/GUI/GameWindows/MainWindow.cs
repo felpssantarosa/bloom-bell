@@ -22,8 +22,6 @@ public class MainWindow : Window, IDisposable
     private bool hasFetchedPlatforms = false;
     private bool canTrustConfiguration = false;
     private NotificationPlatforms? connectedPlatforms;
-
-    // Style constants
     private static readonly Vector4 AccentColor = new(0.42f, 0.60f, 0.90f, 1.00f);
     private static readonly Vector4 SuccessColor = new(0.30f, 0.85f, 0.45f, 1.00f);
     private static readonly Vector4 MutedTextColor = new(0.70f, 0.70f, 0.70f, 1.00f);
