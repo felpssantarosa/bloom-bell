@@ -90,7 +90,12 @@ public sealed class Plugin : IDalamudPlugin
 
         var currentPartySize = partyListProvider.GetPartySize();
 
-        Task.Run(async () => partyNotifier.UpdateAsync(currentPartySize, GameServices.PlayerState.ContentId));
+        Task.Run(async () => partyNotifier.UpdateAsync(
+                currentPartySize,
+                GameServices.PlayerState.ContentId,
+                partyListProvider.IsCrossWorld
+            )
+        );
     }
 
     private void OnCommand(string command, string args)

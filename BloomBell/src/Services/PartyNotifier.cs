@@ -12,9 +12,17 @@ public class PartyNotifier() : IDisposable
     private readonly HttpClient httpClient = new();
     private int lastPartySize = -1;
     private bool alreadyNotified = false;
+    private bool lastIsCrossWorld = false;
 
-    public async Task UpdateAsync(int currentPartySize, ulong contentId)
+    public async Task UpdateAsync(int currentPartySize, ulong contentId, bool isCrossWorld)
     {
+        if (isCrossWorld != lastIsCrossWorld)
+        {
+            lastPartySize = -1;
+            alreadyNotified = false;
+            lastIsCrossWorld = isCrossWorld;
+        }
+
         if (currentPartySize == lastPartySize) return;
 
         var maxSize = 8;
