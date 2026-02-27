@@ -77,7 +77,7 @@ public class MainWindow : Window, IDisposable
         var wrap = iconTexture.GetWrapOrDefault();
         if (wrap != null)
         {
-            ImGui.Image(wrap.Handle, new Vector2(48, 48));
+            ImGui.Image(wrap.Handle, new Vector2(64, 64));
             ImGui.SameLine();
         }
 
