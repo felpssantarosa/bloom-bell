@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Authors>Senya</Authors>
     
-    <Version>0.0.4-beta</Version>
-    <AssemblyVersion>0.0.4.0</AssemblyVersion>
-    <FileVersion>0.0.4.0</FileVersion>
-    <AssemblyInformationalVersion>0.0.4-beta</AssemblyInformationalVersion>
+    <Version>0.0.5-beta</Version>
+    <AssemblyVersion>0.0.5.0</AssemblyVersion>
+    <FileVersion>0.0.5.0</FileVersion>
+    <AssemblyInformationalVersion>0.0.5-beta</AssemblyInformationalVersion>
 
     <PackageProjectUrl>https://github.com/felpssantarosa/bloom-bell</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
