@@ -2,8 +2,8 @@ namespace BloomBell.src.Infrastructure.Configuration;
 
 public static class InternalConfiguration
 {
-    public static string baseServerHttpUri = "http://localhost:3333";
-    public static string baseServerWsUri = "ws://localhost:3334";
+    public static string baseServerHttpUri = "https://bloombell.maot.dev";
+    public static string baseServerWsUri = "wss://bloombell.maot.dev";
     public static string OAuthLoginUrl = $"{baseServerHttpUri}/login";
     public static string NotificationUrl = $"{baseServerHttpUri}/notify";
     public static string CallbackUrl = $"{baseServerHttpUri}/callback";
