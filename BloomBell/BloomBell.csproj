@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <Content Include="resources\icon.png" 
-             Link="images\icon.png" 
              CopyToOutputDirectory="PreserveNewest" 
              Visible="false"/>
   </ItemGroup>

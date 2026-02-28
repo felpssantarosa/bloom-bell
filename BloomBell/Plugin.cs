@@ -75,7 +75,7 @@ public sealed class Plugin : IDalamudPlugin
             partyNotifier = new PartyNotifier(config);
 
             // --- Presentation ---
-            var iconPath = Path.Combine(pluginInterface.AssemblyLocation.DirectoryName!, "images", "icon.png");
+            var iconPath = Path.Combine(pluginInterface.AssemblyLocation.Directory!.FullName, "icon.png");
             var iconTexture = GameServices.TextureProvider.GetFromFile(iconPath);
 
             var headerComponent = new HeaderComponent(partyListProvider, iconTexture);
