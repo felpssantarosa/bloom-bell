@@ -3,7 +3,7 @@
         "Author": "Senya",
         "Name": "Bloom Bell",
         "InternalName": "BloomBell",
-        "AssemblyVersion": "0.0.3.0",
+        "AssemblyVersion": "0.0.4.0",
         "Description": "Notifications for when you are waiting to fill.",
         "ApplicableVersion": "any",
         "RepoUrl": "https://github.com/felpssantarosa/bloom-bell",
@@ -16,8 +16,8 @@
         "LoadPriority": 0,
         "Punchline": "No more alt+tab anxiety on party finder!",
         "AcceptsFeedback": true,
-        "DownloadLinkInstall": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.3-beta/latest.zip",
-        "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.3-beta/latest.zip",
+        "DownloadLinkInstall": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.4-beta/latest.zip",
+        "DownloadLinkUpdate": "https://github.com/felpssantarosa/bloom-bell/releases/download/v0.0.4-beta/latest.zip",
         "IconUrl": "https://raw.githubusercontent.com/felpssantarosa/bloom-bell/master/BloomBell/resources/icon.png"
     }
 ]
