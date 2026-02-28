@@ -37,6 +37,7 @@ public sealed class AuthService : IDisposable
         this.providers = providers;
 
         webSocketClient.OnAuthCompleted += HandleAuthCompleted;
+        webSocketClient.OnAuthFailed += HandleAuthFailed;
         webSocketClient.OnDisconnected += HandleDisconnected;
     }
 
@@ -101,6 +102,16 @@ public sealed class AuthService : IDisposable
         eventBus.Publish(new AuthStateChangedEvent(key, AuthState.Completed));
     }
 
+    private void HandleAuthFailed(string provider, string error)
+    {
+        var key = provider.ToLower();
+
+        GameServices.PluginLog.Warning($"Auth failed for {key}: {error}");
+
+        activeProvider = null;
+        eventBus.Publish(new AuthStateChangedEvent(key, AuthState.Failed));
+    }
+
     private void HandleDisconnected()
     {
         if (activeProvider is null) return;
@@ -115,6 +126,7 @@ public sealed class AuthService : IDisposable
     public void Dispose()
     {
         webSocketClient.OnAuthCompleted -= HandleAuthCompleted;
+        webSocketClient.OnAuthFailed -= HandleAuthFailed;
         webSocketClient.OnDisconnected -= HandleDisconnected;
     }
 }

@@ -27,6 +27,7 @@ public sealed class WebSocketClient : IWebSocketClient
     private bool isDisposing = false;
 
     public event Action<string>? OnAuthCompleted;
+    public event Action<string, string>? OnAuthFailed;
     public event Action? OnDisconnected;
 
     public bool IsConnected => socket is { State: WebSocketState.Open };
@@ -172,6 +173,10 @@ public sealed class WebSocketClient : IWebSocketClient
                 await HandleAuthCompleteAsync(authMessage);
                 break;
 
+            case "authError":
+                await HandleAuthErrorAsync(authMessage);
+                break;
+
             default:
                 GameServices.PluginLog.Debug($"Unhandled WS message type: {authMessage.Type}");
                 break;
@@ -186,6 +191,20 @@ public sealed class WebSocketClient : IWebSocketClient
 
         authCompletedForSession = true;
         OnAuthCompleted?.Invoke(message.Provider);
+
+        await CloseWebSocketAsync();
+    }
+
+    private async Task HandleAuthErrorAsync(AuthMessage message)
+    {
+        var error = message.Error ?? "Unknown error";
+
+        GameServices.PluginLog.Warning(
+            $"{message.Provider.FirstCharToUpper()} auth failed for user with ID {message.UserId}: {error}"
+        );
+
+        authCompletedForSession = true;
+        OnAuthFailed?.Invoke(message.Provider, error);
 
         await CloseWebSocketAsync();
     }

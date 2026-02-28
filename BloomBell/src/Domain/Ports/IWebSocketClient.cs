@@ -13,6 +13,7 @@ public interface IWebSocketClient : IDisposable
     bool IsConnected { get; }
 
     event Action<string>? OnAuthCompleted;
+    event Action<string, string>? OnAuthFailed;
     event Action? OnDisconnected;
 
     Task StartAuthAsync(string userId, string provider);

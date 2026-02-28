@@ -12,4 +12,7 @@ public sealed class AuthMessage
 
     [JsonPropertyName("userId")]
     public string UserId { get; set; } = "";
+
+    [JsonPropertyName("error")]
+    public string? Error { get; set; }
 }
