@@ -225,7 +225,7 @@ public sealed class WebSocketClient : IWebSocketClient
         try
         {
             await socket.ConnectAsync(
-                new Uri(InternalConfiguration.baseServerWsUri),
+                new Uri(InternalConfiguration.BaseServerWsUri),
                 cancellationTokenSource.Token
             );
 

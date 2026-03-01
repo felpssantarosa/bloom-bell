@@ -52,6 +52,10 @@ public sealed class Plugin : IDalamudPlugin
         {
             this.pluginInterface = pluginInterface;
 
+#if DEBUG
+            InternalConfiguration.SetEnvironment(PluginEnvironment.Development);
+#endif
+
             GameServices.Initialize(pluginInterface);
             var config = pluginInterface.GetPluginConfig() as PluginConfiguration ?? new PluginConfiguration();
 
