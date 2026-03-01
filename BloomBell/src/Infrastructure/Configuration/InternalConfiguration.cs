@@ -8,4 +8,5 @@ public static class InternalConfiguration
     public static string NotificationUrl = $"{baseServerHttpUri}/notify";
     public static string CallbackUrl = $"{baseServerHttpUri}/callback";
     public static string PlatformsUrl = $"{baseServerHttpUri}/platforms";
+    public static string DisconnectUrl = $"{baseServerHttpUri}/disconnect";
 }
