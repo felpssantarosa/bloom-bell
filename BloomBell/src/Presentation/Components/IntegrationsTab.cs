@@ -107,8 +107,8 @@ public sealed class IntegrationsTab : IDisposable
             {
                 ImGui.SameLine();
 
-                using (ImRaii.PushColor(ImGuiCol.Button, Colors.Warning))
-                using (ImRaii.PushColor(ImGuiCol.ButtonHovered, Colors.Warning * new Vector4(1, 1, 1, 0.85f)))
+                using (ImRaii.PushColor(ImGuiCol.Button, Colors.Accent))
+                using (ImRaii.PushColor(ImGuiCol.ButtonHovered, Colors.Accent * new Vector4(1, 1, 1, 0.85f)))
                 {
                     if (ImGui.SmallButton("Disconnect"))
                     {
