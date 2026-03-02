@@ -12,7 +12,7 @@ public static class InternalConfiguration
     private const string ProdWsUri = "wss://bloombell.maot.dev";
 
     private const string DevHttpUri = "http://localhost:3333";
-    private const string DevWsUri = "ws://localhost:4444";
+    private const string DevWsUri = "ws://localhost:3334";
 
     public static PluginEnvironment Environment { get; private set; } = PluginEnvironment.Production;
 
