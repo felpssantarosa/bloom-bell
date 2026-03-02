@@ -7,7 +7,7 @@ public class PluginConfiguration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public string OAuthLoginUrl = InternalConfiguration.OAuthLoginUrl;
+    public string OAuthLoginUrl => InternalConfiguration.OAuthLoginUrl;
 
     public bool DiscordLinked = false;
 

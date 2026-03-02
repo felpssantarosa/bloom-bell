@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using BloomBell.src.Domain.Models;
@@ -45,6 +46,32 @@ public sealed class HttpPlatformClient : IPlatformClient
         {
             GameServices.PluginLog.Error(ex, "Failed to parse connected platforms JSON");
             return new PlatformStatus(Discord: false);
+        }
+    }
+
+    public async Task<DisconnectResponse?> DisconnectAsync(ulong userId, string? platform = null)
+    {
+        try
+        {
+            var body = new { pluginUserId = userId.ToString(), platform };
+            var json = JsonSerializer.Serialize(body);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await Client.PostAsync(InternalConfiguration.DisconnectUrl, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var dto = JsonSerializer.Deserialize<DisconnectResponse>(responseContent);
+
+            return dto;
+        }
+        catch (HttpRequestException ex)
+        {
+            GameServices.PluginLog.Error(ex, "Failed to disconnect platform");
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            GameServices.PluginLog.Error(ex, "Failed to parse disconnect response JSON");
+            return null;
         }
     }
 }

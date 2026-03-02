@@ -24,6 +24,7 @@ public sealed class IntegrationsTab : IDisposable
     private bool isFetchingPlatforms = false;
     private bool hasFetchedPlatforms = false;
     private bool isAuthenticating = false;
+    private bool isDisconnecting = false;
 
     public IntegrationsTab(AuthService authService, PlatformService platformService, EventBus eventBus)
     {
@@ -44,6 +45,7 @@ public sealed class IntegrationsTab : IDisposable
         isFetchingPlatforms = false;
         hasFetchedPlatforms = false;
         isAuthenticating = false;
+        isDisconnecting = false;
     }
 
     private void OnAuthStateChanged(AuthStateChangedEvent e)
@@ -100,6 +102,26 @@ public sealed class IntegrationsTab : IDisposable
         else if (platformService.CurrentStatus?.Discord == true)
         {
             ImGui.TextColored(Colors.Success, "\u2713 Discord account linked");
+
+            if (!isDisconnecting)
+            {
+                ImGui.SameLine();
+
+                using (ImRaii.PushColor(ImGuiCol.Button, Colors.Accent))
+                using (ImRaii.PushColor(ImGuiCol.ButtonHovered, Colors.Accent * new Vector4(1, 1, 1, 0.85f)))
+                {
+                    if (ImGui.SmallButton("Disconnect"))
+                    {
+                        isDisconnecting = true;
+                        _ = DisconnectPlatformAsync("discord");
+                    }
+                }
+            }
+            else
+            {
+                ImGui.SameLine();
+                ImGui.TextColored(Colors.MutedText, "Disconnecting...");
+            }
         }
         else
         {
@@ -127,6 +149,20 @@ public sealed class IntegrationsTab : IDisposable
         {
             isFetchingPlatforms = false;
             hasFetchedPlatforms = true;
+        }
+    }
+
+    private async Task DisconnectPlatformAsync(string platform)
+    {
+        try
+        {
+            await platformService.DisconnectAsync(platform);
+            hasFetchedPlatforms = false;
+            isFetchingPlatforms = false;
+        }
+        finally
+        {
+            isDisconnecting = false;
         }
     }
 
