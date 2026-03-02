@@ -19,6 +19,28 @@ public sealed class PartyNotifier(PluginConfiguration pluginConfiguration) : IDi
     private int lastPartySize = 0;
     private bool alreadyNotified = false;
     private bool lastIsCrossWorld = false;
+    public void SuppressNextPartyFull()
+    {
+        alreadyNotified = true;
+    }
+
+    public async Task NotifyDutyPopAsync(ulong contentId)
+    {
+        if (pluginConfiguration.pauseNotifications) return;
+
+        if (!pluginConfiguration.notifyWhenFocused && Dalamud.Utility.Util.ApplicationIsActivated()) return;
+
+        var payload = new
+        {
+            pluginUserId = contentId.ToString(),
+            isDutyPop = true,
+        };
+
+        var json = JsonConvert.SerializeObject(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        await httpClient.PostAsync(InternalConfiguration.NotificationUrl, content);
+    }
 
     public async Task UpdateAsync(int currentPartySize, ulong contentId, bool isCrossWorld)
     {

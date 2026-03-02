@@ -12,6 +12,8 @@ using BloomBell.src.Infrastructure.Game.PartyList;
 using BloomBell.src.Infrastructure.Network;
 using BloomBell.src.Presentation.Components;
 using BloomBell.src.Presentation.Windows;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -98,6 +100,7 @@ public sealed class Plugin : IDalamudPlugin
 
             // --- Hooks ---
             partyListProvider.OnEvent += OnPartyChanged;
+            GameServices.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "ContentsFinderConfirm", OnDutyFinderPop);
 
             GameServices.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
@@ -120,6 +123,7 @@ public sealed class Plugin : IDalamudPlugin
         pluginInterface?.UiBuilder.Draw -= windowSystem.Draw;
         pluginInterface?.UiBuilder.OpenMainUi -= ToggleMainUi;
         partyListProvider.OnEvent -= OnPartyChanged;
+        GameServices.AddonLifecycle?.UnregisterListener(AddonEvent.PostSetup, "ContentsFinderConfirm", OnDutyFinderPop);
 
         GameServices.CommandManager.RemoveHandler(CommandName);
 
@@ -149,6 +153,15 @@ public sealed class Plugin : IDalamudPlugin
                 partyListProvider.IsCrossWorld
             )
         );
+    }
+
+    private void OnDutyFinderPop(AddonEvent type, AddonArgs args)
+    {
+        if (!GameServices.ClientState.IsLoggedIn || GameServices.PlayerState.ContentId == 0) return;
+
+        partyNotifier.SuppressNextPartyFull();
+
+        Task.Run(async () => await partyNotifier.NotifyDutyPopAsync(GameServices.PlayerState.ContentId));
     }
 
     private void OnCommand(string command, string args)
