@@ -19,13 +19,16 @@ public sealed class PartyNotifier(PluginConfiguration pluginConfiguration) : IDi
     private int lastPartySize = 0;
     private bool alreadyNotified = false;
     private bool lastIsCrossWorld = false;
-    public void SuppressNextPartyFull()
-    {
-        alreadyNotified = true;
-    }
 
-    public async Task NotifyDutyPopAsync(ulong contentId)
+    public async Task HandleDutyPopAsync(ulong contentId)
     {
+        if (alreadyNotified)
+        {
+            return;
+        }
+
+        alreadyNotified = true;
+
         if (pluginConfiguration.pauseNotifications) return;
 
         if (!pluginConfiguration.notifyWhenFocused && Dalamud.Utility.Util.ApplicationIsActivated()) return;

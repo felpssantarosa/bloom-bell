@@ -159,9 +159,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         if (!GameServices.ClientState.IsLoggedIn || GameServices.PlayerState.ContentId == 0) return;
 
-        partyNotifier.SuppressNextPartyFull();
-
-        Task.Run(async () => await partyNotifier.NotifyDutyPopAsync(GameServices.PlayerState.ContentId));
+        Task.Run(async () => await partyNotifier.HandleDutyPopAsync(GameServices.PlayerState.ContentId));
     }
 
     private void OnCommand(string command, string args)
