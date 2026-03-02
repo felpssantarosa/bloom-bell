@@ -1,3 +1,5 @@
-# v0.0.3-beta Release Notes
+# v0.1.0-beta Release Notes
 
-Nothing to see here yet!
+- It is now possible to disconnect your discord.
+  - No more being stuck with a discord account you no longer want to use!
+- Notifications on duty pop when using the duty finder.
