@@ -9,7 +9,7 @@
         "RepoUrl": "https://github.com/felpssantarosa/bloom-bell",
         "Tags": ["Notification", "Raid", "Party Finder", "Discord"],
         "CategoryTags": ["utility"],
-        "DalamudApiLevel": 14,
+        "DalamudApiLevel": 15,
         "LoadRequiredState": 0,
         "LoadSync": false,
         "CanUnloadAsync": false,
