@@ -14,7 +14,7 @@ public class PartyListProvider : IDisposable
     private int bufferIndex = 0;
     private int ticksCount = UpdateTicks;
 
-    private readonly Dictionary<long, PartyListMemberInfo>[] buffers = [new(BufferSize), new(BufferSize)];
+    private readonly Dictionary<ulong, PartyListMemberInfo>[] buffers = [new(BufferSize), new(BufferSize)];
 
     public delegate void OnEventDelegate(bool status, PartyListMemberInfo member);
     public event OnEventDelegate OnEvent = delegate { };
@@ -31,17 +31,17 @@ public class PartyListProvider : IDisposable
         buffers[1]?.Clear();
     }
 
-    private Dictionary<long, PartyListMemberInfo> current => buffers[bufferIndex];
-    private Dictionary<long, PartyListMemberInfo> previous => buffers[1 - bufferIndex];
+    private Dictionary<ulong, PartyListMemberInfo> current => buffers[bufferIndex];
+    private Dictionary<ulong, PartyListMemberInfo> previous => buffers[1 - bufferIndex];
 
     public bool IsCrossWorld => InfoProxyCrossRealm.IsCrossRealmParty();
     public bool IsAliance => IsCrossWorld ? InfoProxyCrossRealm.IsAllianceRaid() : GameServices.PartyList.IsAlliance;
 
-    public Dictionary<long, PartyListMemberInfo> GetPartyMembers()
+    public Dictionary<ulong, PartyListMemberInfo> GetPartyMembers()
     {
         if (GameServices.PlayerState.ContentId == 0) return [];
 
-        Dictionary<long, PartyListMemberInfo> buffer = new(current.Count);
+        Dictionary<ulong, PartyListMemberInfo> buffer = new(current.Count);
 
         updateBuffer(buffer);
 
@@ -100,7 +100,7 @@ public class PartyListProvider : IDisposable
         }
     }
 
-    private unsafe void updateBuffer(Dictionary<long, PartyListMemberInfo> buffer)
+    private unsafe void updateBuffer(Dictionary<ulong, PartyListMemberInfo> buffer)
     {
         if (!IsCrossWorld)
         {
@@ -142,9 +142,9 @@ public class PartyListProvider : IDisposable
 
                 if (member.ContentId == 0) continue;
 
-                buffer[(long)member.ContentId] = new()
+                buffer[member.ContentId] = new()
                 {
-                    Id = (long)member.ContentId,
+                    Id = member.ContentId,
                     Name = SeString.Parse(member.Name).TextValue,
                     WorldId = (uint)member.HomeWorld,
                     ClassJobId = member.ClassJobId,

@@ -2,7 +2,7 @@ namespace BloomBell.src.Infrastructure.Game.PartyList;
 
 public readonly struct PartyListMemberInfo
 {
-    public readonly long Id { get; init; }
+    public readonly ulong Id { get; init; }
     public readonly string Name { get; init; }
     public readonly uint WorldId { get; init; }
     public readonly uint ClassJobId { get; init; }
